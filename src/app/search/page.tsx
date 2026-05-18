@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Ticker from "@/components/Ticker";
@@ -19,7 +19,7 @@ interface Post {
   category: { name: string } | null;
 }
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q") || "";
   const [results, setResults] = useState<Post[]>([]);
@@ -150,5 +150,17 @@ export default function SearchPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-brand-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-accent-600 animate-spin" />
+      </div>
+    }>
+      <SearchContent />
+    </Suspense>
   );
 }
