@@ -49,6 +49,11 @@ const DEFAULTS = {
   ftpRemotePath: "/",
   ftpPublicUrl: "",
   disabledAdSlots: "",
+  bannerAdEnabled: "true",
+  bannerAdIsOpen: "true",
+  bannerAdImageUrl: "",
+  bannerAdLinkUrl: "/advertise",
+  bannerAdHtmlCode: "",
 };
 
 async function readSettings() {

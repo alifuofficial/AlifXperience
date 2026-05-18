@@ -86,6 +86,11 @@ export default function AdsDashboard() {
   const [disabledAdSlots, setDisabledAdSlots] = useState<string[]>([]);
   const [togglingSlot, setTogglingSlot] = useState<string | null>(null);
 
+  // Fallback ad settings
+  const [bannerAdEnabled, setBannerAdEnabled] = useState(false);
+  const [bannerAdIsOpen, setBannerAdIsOpen] = useState(true);
+  const [savingFallback, setSavingFallback] = useState(false);
+
   // Campaign Modals / States
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAd, setEditingAd] = useState<Ad | null>(null);
@@ -149,32 +154,102 @@ export default function AdsDashboard() {
   async function fetchData() {
     setLoading(true);
     try {
-      const [adsRes, reqsRes, pkgsRes, revRes, settingsRes] = await Promise.all([
-        fetch("/api/ads"),
-        fetch("/api/ads/requests"),
-        fetch("/api/ads/packages"),
-        fetch("/api/ads/revenue"),
-        fetch("/api/settings")
-      ]);
-      const adsData = await adsRes.json();
-      const reqsData = await reqsRes.json();
-      const pkgsData = await pkgsRes.json();
-      const revData = await revRes.json();
-      const settingsData = await settingsRes.json();
-      
-      setAds(Array.isArray(adsData) ? adsData : []);
-      setRequests(Array.isArray(reqsData) ? reqsData : []);
-      setPackages(Array.isArray(pkgsData) ? pkgsData : []);
+      // 1. Fetch ads
+      let adsData = [];
+      try {
+        const res = await fetch("/api/ads");
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) adsData = data;
+        }
+      } catch (err) {
+        console.error("Failed to load /api/ads:", err);
+      }
+
+      // 2. Fetch requests
+      let reqsData = [];
+      try {
+        const res = await fetch("/api/ads/requests");
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) reqsData = data;
+        }
+      } catch (err) {
+        console.error("Failed to load /api/ads/requests:", err);
+      }
+
+      // 3. Fetch packages
+      let pkgsData = [];
+      try {
+        const res = await fetch("/api/ads/packages");
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) pkgsData = data;
+        }
+      } catch (err) {
+        console.error("Failed to load /api/ads/packages:", err);
+      }
+
+      // 4. Fetch revenue
+      let revData = null;
+      try {
+        const res = await fetch("/api/ads/revenue");
+        if (res.ok) {
+          revData = await res.json();
+        }
+      } catch (err) {
+        console.error("Failed to load /api/ads/revenue:", err);
+      }
+
+      // 5. Fetch settings
+      let settingsData = { disabledAdSlots: "", bannerAdEnabled: "true", bannerAdIsOpen: "true" };
+      try {
+        const res = await fetch("/api/settings");
+        if (res.ok) {
+          settingsData = await res.json();
+        }
+      } catch (err) {
+        console.error("Failed to load /api/settings:", err);
+      }
+
+      setAds(adsData);
+      setRequests(reqsData);
+      setPackages(pkgsData);
       setRevenueData(revData);
 
       const disabledStr = settingsData.disabledAdSlots || "";
       setDisabledAdSlots(disabledStr.split(",").map((s: string) => s.trim()).filter(Boolean));
+      setBannerAdEnabled(settingsData.bannerAdEnabled === "true");
+      setBannerAdIsOpen(settingsData.bannerAdIsOpen === "true");
     } catch (err) {
       console.error("Failed to load advertising data sets:", err);
     } finally {
       setLoading(false);
     }
   }
+
+  const handleSaveFallbackSettings = async (enabled: boolean, isOpen: boolean) => {
+    setSavingFallback(true);
+    try {
+      const response = await fetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bannerAdEnabled: String(enabled),
+          bannerAdIsOpen: String(isOpen),
+        })
+      });
+
+      if (!response.ok) throw new Error("Failed to save fallback settings");
+      
+      setBannerAdEnabled(enabled);
+      setBannerAdIsOpen(isOpen);
+    } catch (err: any) {
+      alert(err.message || "Something went wrong while saving settings.");
+    } finally {
+      setSavingFallback(false);
+    }
+  };
 
   const toggleSlotState = async (slotId: string) => {
     setTogglingSlot(slotId);
@@ -510,6 +585,66 @@ export default function AdsDashboard() {
           <div>
             <p className="text-[8px] font-bold uppercase tracking-widest text-brand-300">Ad Packages</p>
             <p className="text-lg font-black text-brand-900 mt-0.5">{packages.length}</p>
+          </div>
+        </div>
+      </div>
+      {/* Fallback & Placeholder Ad Settings */}
+      <div className="bg-gradient-to-r from-brand-900 to-indigo-950 rounded-2xl border border-white/10 p-6 text-white shadow-md">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="space-y-1.5 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[7.5px] font-black uppercase tracking-[0.2em] text-accent-400 bg-accent-500/20 px-2 py-0.5 rounded border border-accent-500/30">
+                Fallback Placeholder System
+              </span>
+            </div>
+            <h3 className="text-base font-bold tracking-tight">Public Sponsorship Placeholders</h3>
+            <p className="text-[11px] text-brand-200/90 leading-relaxed font-medium max-w-2xl">
+              When there are zero paid campaigns configured for a slot, this system can automatically serve gorgeous, interactive mock banners inviting brands to sponsor the placement. Toggling this ensures your site layout remains beautifully populated and actively drives new inbound inquiries!
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 bg-white/5 border border-white/10 p-4 rounded-xl shrink-0">
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-brand-300">Placeholder Ads:</span>
+              <button
+                onClick={() => handleSaveFallbackSettings(!bannerAdEnabled, bannerAdIsOpen)}
+                disabled={savingFallback}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
+                  bannerAdEnabled ? "bg-accent-500" : "bg-white/20"
+                }`}
+              >
+                <span
+                  className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                    bannerAdEnabled ? "translate-x-4" : "translate-x-1"
+                  }`}
+                />
+              </button>
+              <span className={`text-[10px] font-black uppercase ${bannerAdEnabled ? "text-accent-400" : "text-brand-400"}`}>
+                {bannerAdEnabled ? "ENABLED" : "DISABLED"}
+              </span>
+            </div>
+
+            <div className="w-[1px] h-6 bg-white/10 hidden sm:block" />
+
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-brand-300">Open For Booking:</span>
+              <button
+                onClick={() => handleSaveFallbackSettings(bannerAdEnabled, !bannerAdIsOpen)}
+                disabled={savingFallback}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
+                  bannerAdIsOpen ? "bg-emerald-500" : "bg-white/20"
+                }`}
+              >
+                <span
+                  className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                    bannerAdIsOpen ? "translate-x-4" : "translate-x-1"
+                  }`}
+                />
+              </button>
+              <span className={`text-[10px] font-black uppercase ${bannerAdIsOpen ? "text-emerald-400" : "text-brand-400"}`}>
+                {bannerAdIsOpen ? "YES" : "NO"}
+              </span>
+            </div>
           </div>
         </div>
       </div>

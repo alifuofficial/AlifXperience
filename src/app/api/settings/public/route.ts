@@ -14,7 +14,7 @@ const PUBLIC_DEFAULTS = {
   allowRegistration: "true",
   maintenanceMode: "false",
   newsTickerEnabled: "true",
-  bannerAdEnabled: "false",
+  bannerAdEnabled: "true",
   bannerAdIsOpen: "true",
   bannerAdImageUrl: "",
   bannerAdLinkUrl: "/advertise",

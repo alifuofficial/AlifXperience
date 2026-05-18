@@ -27,26 +27,61 @@ export default function AdSpace({ slot, className = "" }: AdSpaceProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Fetch active ads for this specific slot
-    Promise.all([
-      fetch(`/api/ads/public?slot=${slot}`).then((res) => res.json()),
-      fetch("/api/settings/public").then((res) => res.json())
-    ])
-      .then(([adsData, settingsData]) => {
+    let active = true;
+
+    async function loadSlotData() {
+      try {
+        let adsData: AdModel[] = [];
+        try {
+          const adsRes = await fetch(`/api/ads/public?slot=${slot}`);
+          if (adsRes.ok) {
+            const parsed = await adsRes.json();
+            if (Array.isArray(parsed)) {
+              adsData = parsed;
+            }
+          }
+        } catch (err) {
+          console.error(`[AdSpace] Failed to load ads for slot ${slot}:`, err);
+        }
+
+        let settingsData: Record<string, string> = {};
+        try {
+          const settingsRes = await fetch("/api/settings/public");
+          if (settingsRes.ok) {
+            const parsed = await settingsRes.json();
+            if (parsed && typeof parsed === "object") {
+              settingsData = parsed;
+            }
+          }
+        } catch (err) {
+          console.error("[AdSpace] Failed to load public settings:", err);
+        }
+
+        if (!active) return;
+
         setAds(adsData);
         setFallbackSettings(settingsData);
-        
-        if (adsData && adsData.length > 0) {
-          // Select an ad randomly for weighted rotation
+
+        if (adsData.length > 0) {
           const randomIndex = Math.floor(Math.random() * adsData.length);
           setSelectedAd(adsData[randomIndex]);
+        } else {
+          setSelectedAd(null);
         }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to load sponsorship slot:", err);
-        setLoading(false);
-      });
+      } catch (err) {
+        console.error("[AdSpace] Unexpected error in loadSlotData:", err);
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadSlotData();
+
+    return () => {
+      active = false;
+    };
   }, [slot]);
 
   // 2. Trigger asynchronous impression counter when an ad is displayed
