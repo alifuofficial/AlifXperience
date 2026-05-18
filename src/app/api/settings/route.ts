@@ -48,6 +48,7 @@ const DEFAULTS = {
   ftpPass: "",
   ftpRemotePath: "/",
   ftpPublicUrl: "",
+  disabledAdSlots: "",
 };
 
 async function readSettings() {

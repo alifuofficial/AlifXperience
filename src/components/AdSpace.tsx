@@ -66,6 +66,15 @@ export default function AdSpace({ slot, className = "" }: AdSpaceProps) {
     );
   }
 
+  // Check if slot is disabled in site-wide settings
+  const disabledSlots = fallbackSettings.disabledAdSlots
+    ? fallbackSettings.disabledAdSlots.split(",").map((s: string) => s.trim())
+    : [];
+  
+  if (disabledSlots.includes(slot)) {
+    return null;
+  }
+
   // ── A. IF ACTIVE SPONSOR AD IS LOADED ──
   if (selectedAd) {
     const isHtml = !!selectedAd.htmlCode;

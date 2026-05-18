@@ -20,6 +20,7 @@ const PUBLIC_DEFAULTS = {
   bannerAdLinkUrl: "/advertise",
   bannerAdHtmlCode: "",
   googleClientId: "",
+  disabledAdSlots: "",
 };
 
 async function readSettings() {
@@ -44,6 +45,7 @@ async function readSettings() {
       bannerAdLinkUrl: parsed.bannerAdLinkUrl ?? PUBLIC_DEFAULTS.bannerAdLinkUrl,
       bannerAdHtmlCode: parsed.bannerAdHtmlCode ?? PUBLIC_DEFAULTS.bannerAdHtmlCode,
       googleClientId: parsed.googleClientId ?? PUBLIC_DEFAULTS.googleClientId,
+      disabledAdSlots: parsed.disabledAdSlots ?? PUBLIC_DEFAULTS.disabledAdSlots,
     };
   } catch {
     return PUBLIC_DEFAULTS;

@@ -82,6 +82,10 @@ export default function AdsDashboard() {
   const [revenueData, setRevenueData] = useState<RevenueData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Slot active/disabled status states
+  const [disabledAdSlots, setDisabledAdSlots] = useState<string[]>([]);
+  const [togglingSlot, setTogglingSlot] = useState<string | null>(null);
+
   // Campaign Modals / States
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAd, setEditingAd] = useState<Ad | null>(null);
@@ -145,27 +149,60 @@ export default function AdsDashboard() {
   async function fetchData() {
     setLoading(true);
     try {
-      const [adsRes, reqsRes, pkgsRes, revRes] = await Promise.all([
+      const [adsRes, reqsRes, pkgsRes, revRes, settingsRes] = await Promise.all([
         fetch("/api/ads"),
         fetch("/api/ads/requests"),
         fetch("/api/ads/packages"),
-        fetch("/api/ads/revenue")
+        fetch("/api/ads/revenue"),
+        fetch("/api/settings")
       ]);
       const adsData = await adsRes.json();
       const reqsData = await reqsRes.json();
       const pkgsData = await pkgsRes.json();
       const revData = await revRes.json();
+      const settingsData = await settingsRes.json();
       
       setAds(Array.isArray(adsData) ? adsData : []);
       setRequests(Array.isArray(reqsData) ? reqsData : []);
       setPackages(Array.isArray(pkgsData) ? pkgsData : []);
       setRevenueData(revData);
+
+      const disabledStr = settingsData.disabledAdSlots || "";
+      setDisabledAdSlots(disabledStr.split(",").map((s: string) => s.trim()).filter(Boolean));
     } catch (err) {
       console.error("Failed to load advertising data sets:", err);
     } finally {
       setLoading(false);
     }
   }
+
+  const toggleSlotState = async (slotId: string) => {
+    setTogglingSlot(slotId);
+    try {
+      let newDisabledSlots = [...disabledAdSlots];
+      if (newDisabledSlots.includes(slotId)) {
+        newDisabledSlots = newDisabledSlots.filter((id) => id !== slotId);
+      } else {
+        newDisabledSlots.push(slotId);
+      }
+      
+      const response = await fetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          disabledAdSlots: newDisabledSlots.join(",")
+        })
+      });
+
+      if (!response.ok) throw new Error("Failed to save slot status setting");
+      
+      setDisabledAdSlots(newDisabledSlots);
+    } catch (err: any) {
+      alert(err.message || "Something went wrong while toggling slot state.");
+    } finally {
+      setTogglingSlot(null);
+    }
+  };
 
   // Open form with preset values for editing
   const handleEditClick = (ad: Ad) => {
@@ -528,19 +565,25 @@ export default function AdsDashboard() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className="inline-flex items-center gap-1 text-[8px] font-bold uppercase">
-                        {config.status === "Implemented" ? (
-                          <>
-                            <CheckCircle className="w-3 h-3 text-emerald-500" />
-                            <span className="text-emerald-600">Active</span>
-                          </>
+                      <button
+                        onClick={() => toggleSlotState(key)}
+                        disabled={togglingSlot === key}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider transition-all border cursor-pointer ${
+                          disabledAdSlots.includes(key)
+                            ? "bg-red-50 text-red-700 hover:bg-red-100 border-red-200"
+                            : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200"
+                        } disabled:opacity-50`}
+                        title={disabledAdSlots.includes(key) ? "Click to Enable Ad Slot" : "Click to Disable Ad Slot"}
+                      >
+                        {togglingSlot === key ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : disabledAdSlots.includes(key) ? (
+                          <Ban className="w-3 h-3 text-red-500" />
                         ) : (
-                          <>
-                            <Ban className="w-3 h-3 text-amber-500" />
-                            <span className="text-amber-600">Coming Soon</span>
-                          </>
+                          <CheckCircle className="w-3 h-3 text-emerald-500" />
                         )}
-                      </span>
+                        <span>{disabledAdSlots.includes(key) ? "Disabled" : "Active"}</span>
+                      </button>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
@@ -701,15 +744,23 @@ export default function AdsDashboard() {
                       {ctr}%
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className={`inline-flex px-1.5 py-0.5 rounded text-[7px] font-bold uppercase tracking-widest ${
-                        ad.status === "ACTIVE" 
-                          ? "bg-emerald-50 text-emerald-700" 
-                          : ad.status === "PENDING"
-                            ? "bg-yellow-50 text-yellow-700"
-                            : "bg-red-50 text-red-700"
-                      }`}>
-                        {ad.status}
-                      </span>
+                      <div className="flex flex-col items-center gap-1">
+                        <span className={`inline-flex px-1.5 py-0.5 rounded text-[7px] font-bold uppercase tracking-widest ${
+                          ad.status === "ACTIVE" 
+                            ? "bg-emerald-50 text-emerald-700" 
+                            : ad.status === "PENDING"
+                              ? "bg-yellow-50 text-yellow-700"
+                              : "bg-red-50 text-red-700"
+                        }`}>
+                          {ad.status}
+                        </span>
+                        {ad.status === "ACTIVE" && disabledAdSlots.includes(ad.slot) && (
+                          <span className="inline-flex items-center gap-0.5 text-[6.5px] font-black uppercase text-red-600 bg-red-50 px-1 py-0.5 rounded border border-red-200 mt-1 animate-pulse">
+                            <Ban className="w-2 h-2" />
+                            Slot Disabled
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -895,7 +946,7 @@ export default function AdsDashboard() {
                 >
                   {Object.entries(slotLabels).map(([key, config]) => (
                     <option key={key} value={key}>
-                      {config.label} ({config.dimensions})
+                      {config.label} ({config.dimensions}){disabledAdSlots.includes(key) ? " - [DISABLED]" : ""}
                     </option>
                   ))}
                 </select>

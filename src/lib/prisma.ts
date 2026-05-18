@@ -9,8 +9,10 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 const createPrismaClient = () => {
-  // Absolute path to dev.db at project root — avoids CWD resolution issues in Next.js
-  const dbPath = path.join(process.cwd(), "dev.db");
+  // Support custom database path via DATABASE_URL, defaulting to dev.db at project root
+  const dbUrl = process.env.DATABASE_URL || "file:./dev.db";
+  const rawPath = dbUrl.startsWith("file:") ? dbUrl.substring(5) : dbUrl;
+  const dbPath = path.isAbsolute(rawPath) ? rawPath : path.join(process.cwd(), rawPath);
 
   // Open the SQLite database directly to safely enable Write-Ahead Logging (WAL)
   // and synchronous = NORMAL optimizations once on startup.

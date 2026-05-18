@@ -39,5 +39,6 @@
   "ftpPass": "",
   "ftpRemotePath": "/",
   "ftpPublicUrl": "",
+  "disabledAdSlots": "",
   "bannerAdEnabled": "true"
 }
