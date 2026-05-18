@@ -4,6 +4,16 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { XMLParser } from "fast-xml-parser";
 
+// Helper to extract text safely from fast-xml-parser nodes
+function getXmlText(node: any): string {
+  if (node === null || node === undefined) return "";
+  if (typeof node === "object") {
+    if (node["#text"] !== undefined) return String(node["#text"]);
+    return String(node.text ?? "");
+  }
+  return String(node);
+}
+
 // Helper to make an alphanumeric slug from a string
 function slugify(text: string): string {
   return text
@@ -95,31 +105,31 @@ export async function POST(req: NextRequest) {
     // 5. Traverse items and parse posts
     for (const item of rawItems) {
       // Standard WXR filters: post_type should be 'post'
-      const postType = item["wp:post_type"] ?? item.post_type ?? "post";
+      const postType = getXmlText(item["wp:post_type"] ?? item.post_type ?? "post");
       if (postType !== "post") {
         continue; // Skip attachments, custom menus, pages, etc.
       }
 
       // Title & slug extraction
-      const title = String(item.title ?? "Untitled Post").trim();
-      let rawSlug = item["wp:post_name"] ?? item.post_name ?? item.slug;
-      if (!rawSlug || typeof rawSlug !== "string" || rawSlug.trim() === "") {
+      const title = getXmlText(item.title ?? "Untitled Post").trim();
+      let rawSlug = getXmlText(item["wp:post_name"] ?? item.post_name ?? item.slug);
+      if (!rawSlug || rawSlug.trim() === "") {
         rawSlug = slugify(title);
       }
-      let slug = slugify(String(rawSlug));
+      let slug = slugify(rawSlug);
       if (!slug) slug = `post-${Date.now()}`;
 
       // Content & Description
-      const content = String(item["content:encoded"] ?? item.content ?? item["content"] ?? "");
-      const description = String(item["excerpt:encoded"] ?? item.description ?? item.excerpt ?? "").substring(0, 190);
+      const content = getXmlText(item["content:encoded"] ?? item.content ?? item["content"] ?? "");
+      const description = getXmlText(item["excerpt:encoded"] ?? item.description ?? item.excerpt ?? "").substring(0, 190);
 
       // Status translation
-      const wpStatus = String(item["wp:status"] ?? item.status ?? "publish").toLowerCase();
-      const published = wpStatus === "publish";
+      const wpStatus = getXmlText(item["wp:status"] ?? item.status ?? "publish").toLowerCase().trim();
+      const published = wpStatus === "publish" || wpStatus === "published";
 
       // Created Date
       let createdAt = new Date();
-      const postDate = item["wp:post_date"] ?? item.pubDate ?? item.date;
+      const postDate = getXmlText(item["wp:post_date"] ?? item.pubDate ?? item.date);
       if (postDate) {
         const parsedDate = new Date(postDate);
         if (!isNaN(parsedDate.getTime())) {
@@ -135,28 +145,35 @@ export async function POST(req: NextRequest) {
           categories = [categories];
         }
 
-        // Find standard category entry (domain="category")
-        const catNode = categories.find(
-          (c: any) => c["@_domain"] === "category" || c.domain === "category"
-        );
-
-        if (catNode) {
-          const catName = String(catNode["#text"] ?? catNode.text ?? catNode).trim();
-          const catSlug = slugify(catName) || "uncategorized";
-
-          if (catName && catName !== "Uncategorized") {
-            // Find or create category
-            let dbCat = await prisma.category.findUnique({
-              where: { slug: catSlug },
-            });
-            if (!dbCat) {
-              dbCat = await prisma.category.create({
-                data: { name: catName, slug: catSlug },
-              });
-              categoriesCreated++;
+        let catName = "";
+        for (const cat of categories) {
+          if (cat === null || cat === undefined) continue;
+          
+          if (typeof cat === "object") {
+            const domain = cat["@_domain"] ?? cat.domain;
+            if (domain === "category") {
+              catName = getXmlText(cat).trim();
+              break;
             }
-            categoryId = dbCat.id;
+          } else {
+            catName = String(cat).trim();
+            break;
           }
+        }
+
+        if (catName && catName !== "Uncategorized") {
+          const catSlug = slugify(catName) || "uncategorized";
+          // Find or create category
+          let dbCat = await prisma.category.findUnique({
+            where: { slug: catSlug },
+          });
+          if (!dbCat) {
+            dbCat = await prisma.category.create({
+              data: { name: catName, slug: catSlug },
+            });
+            categoriesCreated++;
+          }
+          categoryId = dbCat.id;
         }
       }
 

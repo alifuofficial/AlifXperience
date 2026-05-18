@@ -231,11 +231,68 @@ export default function AdminDashboard() {
           fetch("/api/analytics/ga"),
           fetch("/api/ads/revenue"),
         ]);
-        if (dbRes.ok) setDbData(await dbRes.json());
-        if (gaRes.ok) setGaData(await gaRes.json());
-        if (revRes.ok) setRevenueData(await revRes.json());
+        
+        if (dbRes.ok) {
+          setDbData(await dbRes.json());
+        } else {
+          console.error("Overview stats fetch failed:", dbRes.status);
+          setDbData({
+            totalPosts: 0,
+            totalUsers: 0,
+            totalComments: 0,
+            categories: [],
+            recentPosts: [],
+            recentUsers: [],
+            activityFeed: [],
+          });
+        }
+
+        if (gaRes.ok) {
+          setGaData(await gaRes.json());
+        } else {
+          console.error("GA stats fetch failed:", gaRes.status);
+          setGaData({
+            totalViews: 0,
+            changePercent: 0,
+            trend: "up",
+            weeklyViews: [0, 0, 0, 0, 0, 0, 0],
+            weekLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+            isMock: true,
+          });
+        }
+
+        if (revRes.ok) {
+          setRevenueData(await revRes.json());
+        } else {
+          console.error("Revenue stats fetch failed:", revRes.status);
+          setRevenueData({
+            totalRevenue: 0,
+            monthRevenue: 0,
+          });
+        }
       } catch (error) {
         console.error("Dashboard fetch error", error);
+        setDbData({
+          totalPosts: 0,
+          totalUsers: 0,
+          totalComments: 0,
+          categories: [],
+          recentPosts: [],
+          recentUsers: [],
+          activityFeed: [],
+        });
+        setGaData({
+          totalViews: 0,
+          changePercent: 0,
+          trend: "up",
+          weeklyViews: [0, 0, 0, 0, 0, 0, 0],
+          weekLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+          isMock: true,
+        });
+        setRevenueData({
+          totalRevenue: 0,
+          monthRevenue: 0,
+        });
       } finally {
         setLoading(false);
       }
