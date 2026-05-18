@@ -19,6 +19,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+ENV NEXTAUTH_TRUST_HOST=true
 
 COPY package*.json ./
 COPY --from=deps /app/node_modules ./node_modules
