@@ -1,0 +1,4 @@
+# Declare files that are always binary and should not be modified by line ending normalization
+*.db binary
+*.db-shm binary
+*.db-wal binary
