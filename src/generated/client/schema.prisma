@@ -1,0 +1,135 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../src/generated/client"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String?
+  email     String    @unique
+  password  String
+  role      Role      @default(USER)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  comments  Comment[]
+  posts     Post[]
+}
+
+model Category {
+  id    String @id @default(cuid())
+  name  String @unique
+  slug  String @unique
+  posts Post[]
+}
+
+model Post {
+  id         String    @id @default(cuid())
+  title      String
+  slug       String    @unique
+  content    String
+  excerpt    String?
+  coverImage String?
+  published  Boolean   @default(false)
+  authorId   String
+  categoryId String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  comments   Comment[]
+  category   Category  @relation(fields: [categoryId], references: [id])
+  author     User      @relation(fields: [authorId], references: [id])
+
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([createdAt])
+  @@index([published, createdAt])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  postId    String
+  authorId  String
+  createdAt DateTime @default(now())
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model Media {
+  id          String   @id @default(cuid())
+  name        String // Original filename
+  filename    String // Generated unique name
+  url         String // Public URL
+  mimeType    String // File mime type
+  size        Int // File size in bytes
+  storageType String // "LOCAL" or "FTP"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Ad {
+  id          String   @id @default(cuid())
+  title       String // Campaign Name
+  companyName String // Sponsoring Company
+  slot        String // "homepage-banner" | "article-top" | "sidebar-rect" | "article-bottom" | "popup-overlay"
+  imageUrl    String? // Creative Graphic asset URL
+  linkUrl     String? // Destination target URL
+  htmlCode    String? // Raw script/script HTML block (e.g. custom Google AdSense)
+  status      String   @default("ACTIVE") // "ACTIVE" | "PENDING" | "EXPIRED"
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AdRequest {
+  id        String   @id @default(cuid())
+  brandName String
+  email     String
+  tier      String
+  message   String
+  status    String   @default("PENDING") // "PENDING" | "APPROVED" | "REJECTED"
+  price     Float? // Revenue from this request
+  createdAt DateTime @default(now())
+}
+
+model AdPackage {
+  id          String   @id @default(cuid())
+  title       String // e.g., "Standard Banner Placement"
+  description String
+  price       Float // Price amount
+  priceUnit   String // e.g., "/mo", "/art", "/blast"
+  features    String // JSON array of features
+  isFeatured  Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AdRevenue {
+  id          String   @id @default(cuid())
+  source      String // "ad_request", "subscription", "manual"
+  amount      Float
+  description String
+  date        DateTime @default(now())
+}

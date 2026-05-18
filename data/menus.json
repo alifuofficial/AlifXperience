@@ -1,0 +1,38 @@
+[
+  {
+    "id": "1",
+    "name": "Home",
+    "href": "/",
+    "children": []
+  },
+  {
+    "id": "2",
+    "name": "AI & ML",
+    "href": "/category/ai",
+    "children": []
+  },
+  {
+    "id": "3",
+    "name": "Hardware",
+    "href": "/category/hardware",
+    "children": []
+  },
+  {
+    "id": "4",
+    "name": "Security",
+    "href": "/category/security",
+    "children": []
+  },
+  {
+    "id": "5",
+    "name": "Space",
+    "href": "/category/space",
+    "children": []
+  },
+  {
+    "id": "7",
+    "name": "About Me",
+    "href": "/about",
+    "children": []
+  }
+]
