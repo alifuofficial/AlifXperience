@@ -42,6 +42,7 @@ function slugify(str: string) {
 
 // ─── Cover Image Upload Panel ──────────────────────────────────────────────────
 import MediaSelectorModal from "@/components/MediaSelectorModal";
+import CoAuthorsPanel from "@/components/CoAuthorsPanel";
 
 function CoverImagePanel({
   coverImage, setCoverImage,
@@ -259,6 +260,7 @@ export default function NewPostPage() {
   const [categoryId, setCategoryId] = useState("");
   const [published, setPublished] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [coAuthors, setCoAuthors] = useState<string[]>([]);
 
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -283,7 +285,7 @@ export default function NewPostPage() {
   }, [title, slugManual]);
 
   // Mark dirty whenever content changes (to trigger auto-save)
-  useEffect(() => { isDirtyRef.current = true; }, [title, content, excerpt, coverImage, categoryId]);
+  useEffect(() => { isDirtyRef.current = true; }, [title, content, excerpt, coverImage, categoryId, coAuthors]);
 
   // ─── Auto-save Logic ─────────────────────────────────────────────
   const doAutoSave = useCallback(async () => {
@@ -302,6 +304,7 @@ export default function NewPostPage() {
         published: false,
         authorId: (session?.user as any)?.id,
         isDraft: true,
+        coAuthors,
       };
       const res = await fetch("/api/posts/autosave", {
         method: "POST",
@@ -317,7 +320,7 @@ export default function NewPostPage() {
     } catch {
       setAutoSaveStatus("error");
     }
-  }, [title, slug, content, excerpt, coverImage, categoryId, draftId, session]);
+  }, [title, slug, content, excerpt, coverImage, categoryId, draftId, session, coAuthors]);
 
   // Auto-save every 30 seconds
   useEffect(() => {
@@ -329,7 +332,7 @@ export default function NewPostPage() {
   useEffect(() => {
     const t = setTimeout(() => { if (isDirtyRef.current) doAutoSave(); }, 3000);
     return () => clearTimeout(t);
-  }, [title, content, excerpt, coverImage, categoryId, doAutoSave]);
+  }, [title, content, excerpt, coverImage, categoryId, coAuthors, doAutoSave]);
 
   // ─── Manual Save/Publish ─────────────────────────────────────────
   const handleSave = async (publish = false) => {
@@ -350,6 +353,7 @@ export default function NewPostPage() {
         categoryId,
         published: publish,
         authorId: (session?.user as any)?.id,
+        coAuthors,
       };
       const res = await fetch("/api/posts", {
         method: "POST",
@@ -504,6 +508,13 @@ export default function NewPostPage() {
             setCategories={setCategories}
             categoryId={categoryId}
             setCategoryId={setCategoryId}
+          />
+
+          {/* Co-Authors Selection */}
+          <CoAuthorsPanel
+            selectedIds={coAuthors}
+            onChange={setCoAuthors}
+            primaryAuthorId={(session?.user as any)?.id}
           />
 
           {/* Cover Image */}

@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { 
   Zap, Save, Plus, Trash2, ArrowUp, ArrowDown, ChevronRight, 
   ChevronLeft, Edit2, Check, X, FolderKanban, Link as LinkIcon, 
-  Sparkles, RotateCcw, AlertCircle, RefreshCw
+  Sparkles, RotateCcw, AlertCircle, RefreshCw, ShieldOff
 } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 interface MenuItem {
   id: string;
@@ -28,6 +29,10 @@ interface Category {
 }
 
 export default function MenusPage() {
+  const { data: session, status } = useSession();
+  const role = (session?.user as any)?.role;
+
+  const [menuLocation, setMenuLocation] = useState<"header" | "footer">("header");
   const [flatItems, setFlatItems] = useState<FlatMenuItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +55,7 @@ export default function MenusPage() {
     setError("");
     try {
       // 1. Fetch current menus
-      const menusRes = await fetch("/api/menus");
+      const menusRes = await fetch(`/api/menus?location=${menuLocation}`);
       if (!menusRes.ok) throw new Error("Failed to load menus");
       const menus: MenuItem[] = await menusRes.json();
       setFlatItems(flattenTree(menus));
@@ -69,8 +74,33 @@ export default function MenusPage() {
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (role === "ADMIN") {
+      loadData();
+    }
+  }, [role, menuLocation]);
+
+  if (status === "loading") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[500px] gap-3">
+        <RefreshCw className="w-8 h-8 text-accent-500 animate-spin" />
+        <p className="text-xs font-bold uppercase tracking-widest text-brand-400">Authenticating Session...</p>
+      </div>
+    );
+  }
+
+  if (role !== "ADMIN") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[450px] space-y-4">
+        <div className="p-3 bg-red-50 text-red-600 rounded-full">
+          <ShieldOff className="w-8 h-8" />
+        </div>
+        <div className="text-center max-w-sm">
+          <h2 className="text-lg font-bold text-brand-900">Access Denied</h2>
+          <p className="text-xs text-brand-400 mt-1 font-medium">You do not have the required permissions to access this management area. Please contact system administrator.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Helper: Flatten Tree Structure
   const flattenTree = (items: MenuItem[], level = 0): FlatMenuItem[] => {
@@ -238,7 +268,7 @@ export default function MenusPage() {
 
     try {
       const nestedTree = nestFlatList(flatItems);
-      const res = await fetch("/api/menus", {
+      const res = await fetch(`/api/menus?location=${menuLocation}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(nestedTree),
@@ -249,7 +279,7 @@ export default function MenusPage() {
         throw new Error(data.error || "Failed to save menus");
       }
 
-      setSuccess("Navigation menus updated and saved successfully!");
+      setSuccess(`Navigation menu for ${menuLocation === "footer" ? "Footer Topics" : "Header Navigation"} updated and saved successfully!`);
       setTimeout(() => setSuccess(""), 5000);
     } catch (err: any) {
       setError(err.message || "An error occurred while saving.");
@@ -260,8 +290,16 @@ export default function MenusPage() {
 
   // Reset to default links
   const handleResetDefaults = () => {
-    if (!confirm("Are you sure you want to reset the menu list back to standard defaults? All unsaved edits will be lost.")) return;
-    const DEFAULT_MENUS = [
+    if (!confirm(`Are you sure you want to reset the ${menuLocation === "footer" ? "Footer Topics" : "Header Navigation"} menu back to standard defaults? All unsaved edits will be lost.`)) return;
+    
+    const defaults = menuLocation === "footer" ? [
+      { id: "f1", name: "AI & Machine Learning", href: "/category/ai", level: 0 },
+      { id: "f2", name: "Hardware", href: "/category/hardware", level: 0 },
+      { id: "f3", name: "Cybersecurity", href: "/category/security", level: 0 },
+      { id: "f4", name: "Space Tech", href: "/category/space", level: 0 },
+      { id: "f5", name: "Software", href: "/category/software", level: 0 },
+      { id: "f6", name: "Reviews", href: "/category/software", level: 0 }
+    ] : [
       { id: "1", name: "Home", href: "/", level: 0 },
       { id: "2", name: "AI & ML", href: "/category/ai", level: 0 },
       { id: "3", name: "Hardware", href: "/category/hardware", level: 0 },
@@ -270,8 +308,9 @@ export default function MenusPage() {
       { id: "6", name: "Reviews", href: "/category/software", level: 0 },
       { id: "7", name: "About Us", href: "/about", level: 0 }
     ];
-    setFlatItems(DEFAULT_MENUS);
-    setSuccess("Menu structure reset to standard defaults.");
+
+    setFlatItems(defaults);
+    setSuccess(`Menu structure for ${menuLocation === "footer" ? "Footer Topics" : "Header Navigation"} reset to standard defaults.`);
     setTimeout(() => setSuccess(""), 3000);
   };
 
@@ -294,7 +333,12 @@ export default function MenusPage() {
             <span className="text-[8px] font-black uppercase tracking-wider">Dynamic Layout Blocks</span>
           </div>
           <h1 className="text-2xl font-black text-brand-900 tracking-tight uppercase">Navigation Menus Manager</h1>
-          <p className="text-[10px] text-brand-400 font-bold uppercase tracking-widest mt-1">Configure your website header navigation links with hierarchical sub-menus</p>
+          <p className="text-[10px] text-brand-400 font-bold uppercase tracking-widest mt-1">
+            {menuLocation === "footer"
+              ? "Configure your website footer topics section links"
+              : "Configure your website header navigation links with hierarchical sub-menus"
+            }
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -314,6 +358,30 @@ export default function MenusPage() {
             Save Menu Structure
           </button>
         </div>
+      </div>
+
+      {/* Menu Location Tabs */}
+      <div className="bg-white p-1 rounded-xl border border-brand-100 flex max-w-sm shadow-sm">
+        <button
+          onClick={() => setMenuLocation("header")}
+          className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${
+            menuLocation === "header"
+              ? "bg-accent-600 text-white shadow-sm"
+              : "text-brand-500 hover:text-brand-900 font-bold"
+          }`}
+        >
+          Header Navigation
+        </button>
+        <button
+          onClick={() => setMenuLocation("footer")}
+          className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${
+            menuLocation === "footer"
+              ? "bg-accent-600 text-white shadow-sm"
+              : "text-brand-500 hover:text-brand-900 font-bold"
+          }`}
+        >
+          Footer Topics
+        </button>
       </div>
 
       {/* Notification Toast */}

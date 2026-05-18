@@ -99,6 +99,25 @@ const MOCK_POSTS = [
   }
 ];
 
+function getAuthorsText(post: any, userMap: Map<string, string>) {
+  const primaryName = post.author?.name || "AlifX Staff";
+  const authors = [primaryName];
+  if (post.coAuthorsJson) {
+    try {
+      const coAuthorIds = JSON.parse(post.coAuthorsJson);
+      if (Array.isArray(coAuthorIds)) {
+        coAuthorIds.forEach((id) => {
+          const name = userMap.get(id);
+          if (name && !authors.includes(name)) {
+            authors.push(name);
+          }
+        });
+      }
+    } catch {}
+  }
+  return authors.join(" & ");
+}
+
 export default async function Home() {
   const settings = await readPublicSettings();
   const siteTitle = settings.siteName || "AlifXperience";
@@ -108,6 +127,7 @@ export default async function Home() {
 
   // ─── Query Live Posts ────────────────────────────────────────────────────────
   let dbPosts: any[] = [];
+  const userMap = new Map<string, string>();
   try {
     dbPosts = await prisma.post.findMany({
       where: { published: true },
@@ -116,6 +136,13 @@ export default async function Home() {
         author: { select: { name: true } },
         category: { select: { name: true, slug: true } },
       },
+    });
+
+    const allUsers = await prisma.user.findMany({
+      select: { id: true, name: true, email: true }
+    });
+    allUsers.forEach((u) => {
+      userMap.set(u.id, u.name || u.email);
     });
   } catch (error) {
     console.error("Failed to query posts from database:", error);
@@ -228,7 +255,7 @@ export default async function Home() {
                 <div className="flex items-center gap-4 pt-4 border-t border-white/10 text-brand-300 text-[10px] font-bold uppercase tracking-wider">
                   <div className="flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5" />
-                    <span>{mainFeatured.author?.name || "NEXUS Staff"}</span>
+                    <span>{getAuthorsText(mainFeatured, userMap)}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5" />
@@ -393,7 +420,7 @@ export default async function Home() {
                     <div className="flex items-center justify-between pt-4 border-t border-brand-50 mt-auto text-[9px] font-bold text-brand-400 uppercase tracking-widest">
                       <span className="flex items-center gap-1">
                         <User className="w-3 h-3 text-brand-300" />
-                        {post.author?.name || "AlifX Staff"}
+                        {getAuthorsText(post, userMap)}
                       </span>
                       <span>{readTime(post.content || "")} min read</span>
                     </div>

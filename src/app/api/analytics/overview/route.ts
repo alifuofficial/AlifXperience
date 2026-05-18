@@ -5,9 +5,33 @@ import { authOptions } from "@/lib/auth";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session || (session.user as any)?.role !== "ADMIN") {
+  const role = (session?.user as any)?.role;
+  if (!session || (role !== "ADMIN" && role !== "AUTHOR")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const userId = (session.user as any)?.id;
+  const isAuthor = role === "AUTHOR";
+
+  const postFilter = isAuthor
+    ? {
+        OR: [
+          { authorId: userId },
+          { coAuthorsJson: { contains: userId } },
+        ],
+      }
+    : {};
+
+  const commentFilter = isAuthor
+    ? {
+        post: {
+          OR: [
+            { authorId: userId },
+            { coAuthorsJson: { contains: userId } },
+          ],
+        },
+      }
+    : {};
 
   try {
     const [
@@ -22,15 +46,16 @@ export async function GET() {
       recentPostsForActivity,
     ] = await Promise.all([
       // Total counts
-      prisma.post.count(),
-      prisma.user.count(),
-      prisma.comment.count(),
+      prisma.post.count({ where: postFilter }),
+      isAuthor ? Promise.resolve(0) : prisma.user.count(),
+      prisma.comment.count({ where: commentFilter }),
       
       // Categories with count
       prisma.category.findMany({
         select: {
           name: true,
           posts: {
+            where: postFilter,
             select: { id: true },
           },
         },
@@ -38,6 +63,7 @@ export async function GET() {
 
       // Recent Posts
       prisma.post.findMany({
+        where: postFilter,
         orderBy: { createdAt: "desc" },
         take: 5,
         select: {
@@ -50,20 +76,23 @@ export async function GET() {
         },
       }),
 
-      // Recent Users
-      prisma.user.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 5,
-        select: {
-          name: true,
-          email: true,
-          role: true,
-          createdAt: true,
-        },
-      }),
+      // Recent Users (Admins only)
+      isAuthor
+        ? Promise.resolve([])
+        : prisma.user.findMany({
+            orderBy: { createdAt: "desc" },
+            take: 5,
+            select: {
+              name: true,
+              email: true,
+              role: true,
+              createdAt: true,
+            },
+          }),
 
-      // Activity Feed source data (take last 3 comments, 3 users, 3 posts)
+      // Activity Feed source data
       prisma.comment.findMany({
+        where: commentFilter,
         orderBy: { createdAt: "desc" },
         take: 3,
         select: {
@@ -72,15 +101,18 @@ export async function GET() {
           post: { select: { title: true } },
         },
       }),
-      prisma.user.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 3,
-        select: {
-          createdAt: true,
-          email: true,
-        },
-      }),
+      isAuthor
+        ? Promise.resolve([])
+        : prisma.user.findMany({
+            orderBy: { createdAt: "desc" },
+            take: 3,
+            select: {
+              createdAt: true,
+              email: true,
+            },
+          }),
       prisma.post.findMany({
+        where: postFilter,
         orderBy: { createdAt: "desc" },
         take: 3,
         select: {

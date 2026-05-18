@@ -28,20 +28,21 @@ model Category {
 }
 
 model Post {
-  id         String    @id @default(cuid())
-  title      String
-  slug       String    @unique
-  content    String
-  excerpt    String?
-  coverImage String?
-  published  Boolean   @default(false)
-  authorId   String
-  categoryId String
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  comments   Comment[]
-  category   Category  @relation(fields: [categoryId], references: [id])
-  author     User      @relation(fields: [authorId], references: [id])
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique
+  content       String
+  excerpt       String?
+  coverImage    String?
+  published     Boolean   @default(false)
+  authorId      String
+  categoryId    String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  comments      Comment[]
+  category      Category  @relation(fields: [categoryId], references: [id])
+  author        User      @relation(fields: [authorId], references: [id])
+  coAuthorsJson String? // Optional JSON string array of additional co-author User IDs
 
   @@index([authorId])
   @@index([categoryId])
@@ -66,6 +67,7 @@ model Comment {
 enum Role {
   USER
   ADMIN
+  AUTHOR
 }
 
 model Subscriber {

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, FolderTree, Check, X, Loader2, Hash } from "lucide-react";
+import { Plus, Pencil, Trash2, FolderTree, Check, X, Loader2, Hash, ShieldOff } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 interface Category {
   id: string;
@@ -69,6 +70,9 @@ function EditRow({ cat, onSave, onCancel }: {
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function CategoriesPage() {
+  const { data: session, status } = useSession();
+  const role = (session?.user as any)?.role;
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -81,8 +85,10 @@ export default function CategoriesPage() {
   const [createErr, setCreateErr] = useState("");
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
+    if (role === "ADMIN") {
+      fetchCategories();
+    }
+  }, [role]);
 
   async function fetchCategories() {
     setLoading(true);
@@ -92,6 +98,28 @@ export default function CategoriesPage() {
       setCategories(Array.isArray(data) ? data : []);
     } catch { }
     finally { setLoading(false); }
+  }
+
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-accent-600" />
+      </div>
+    );
+  }
+
+  if (role !== "ADMIN") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[450px] space-y-4">
+        <div className="p-3 bg-red-50 text-red-600 rounded-full">
+          <ShieldOff className="w-8 h-8" />
+        </div>
+        <div className="text-center max-w-sm">
+          <h2 className="text-lg font-bold text-brand-900">Access Denied</h2>
+          <p className="text-xs text-brand-400 mt-1 font-medium">You do not have the required permissions to access this management area. Please contact system administrator.</p>
+        </div>
+      </div>
+    );
   }
 
   // ─── Create ─────────────────────────────────────────────────────────────────

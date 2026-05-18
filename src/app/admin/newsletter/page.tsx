@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import { useSession } from "next-auth/react";
 
 const TipTapEditor = dynamic(() => import("@/components/TipTapEditor"), {
   ssr: false,
@@ -18,6 +19,7 @@ import {
   Loader2,
   Calendar,
   Sparkles,
+  ShieldOff,
 } from "lucide-react";
 
 interface Subscriber {
@@ -27,6 +29,9 @@ interface Subscriber {
 }
 
 export default function NewsletterPage() {
+  const { data: session, status: sessionStatus } = useSession();
+  const role = (session?.user as any)?.role;
+
   // Composing newsletter
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
@@ -70,8 +75,33 @@ export default function NewsletterPage() {
   };
 
   useEffect(() => {
-    fetchSubscribers();
-  }, []);
+    if (role === "ADMIN") {
+      fetchSubscribers();
+    }
+  }, [role]);
+
+  if (sessionStatus === "loading") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+        <Loader2 className="w-8 h-8 text-accent-500 animate-spin" />
+        <p className="text-xs font-bold uppercase tracking-widest text-brand-400">Authenticating Session...</p>
+      </div>
+    );
+  }
+
+  if (role !== "ADMIN") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[450px] space-y-4">
+        <div className="p-3 bg-red-50 text-red-600 rounded-full">
+          <ShieldOff className="w-8 h-8" />
+        </div>
+        <div className="text-center max-w-sm">
+          <h2 className="text-lg font-bold text-brand-900">Access Denied</h2>
+          <p className="text-xs text-brand-400 mt-1 font-medium">You do not have the required permissions to access this management area. Please contact system administrator.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Handle manual subscriber creation
   const handleAddSubscriber = async (e: React.FormEvent) => {

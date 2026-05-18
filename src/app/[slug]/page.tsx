@@ -33,7 +33,7 @@ async function getPost(slug: string) {
   return prisma.post.findFirst({
     where: { slug, published: true },
     include: {
-      author: { select: { name: true } },
+      author: { select: { name: true, email: true } },
       category: { select: { id: true, name: true, slug: true } },
       comments: {
         orderBy: { createdAt: "desc" },
@@ -240,6 +240,26 @@ export default async function PostPage({ params }: Props) {
   const related = await getRelatedPosts(post.category.id, slug);
   const mins = readTime(post.content);
 
+  // Load co-authors
+  let coAuthorsList: Array<{ id: string; name: string | null; email: string }> = [];
+  if (post.coAuthorsJson) {
+    try {
+      const coAuthorIds = JSON.parse(post.coAuthorsJson);
+      if (Array.isArray(coAuthorIds) && coAuthorIds.length > 0) {
+        coAuthorsList = await prisma.user.findMany({
+          where: { id: { in: coAuthorIds } },
+          select: { id: true, name: true, email: true },
+        });
+      }
+    } catch {}
+  }
+
+  const allAuthors = [
+    { name: post.author.name ?? "AlifX Staff", email: post.author.email ?? "" },
+    ...coAuthorsList.map((a) => ({ name: a.name ?? a.email, email: a.email })),
+  ];
+  const authorsText = allAuthors.map((a) => a.name).join(" & ");
+
   // Split content at midpoint to inject inline recommendation
   const midPoint = Math.floor(post.content.length / 2);
   const splitIdx = post.content.indexOf("</p>", midPoint);
@@ -264,11 +284,11 @@ export default async function PostPage({ params }: Props) {
     "image": post.coverImage ? [post.coverImage] : [`${siteUrl}/favicon.ico`],
     "datePublished": post.createdAt.toISOString(),
     "dateModified": post.createdAt.toISOString(),
-    "author": {
+    "author": allAuthors.map(auth => ({
       "@type": "Person",
-      "name": post.author.name || "AlifX Staff",
+      "name": auth.name,
       "jobTitle": "Tech Journalist"
-    },
+    })),
     "publisher": {
       "@type": "Organization",
       "name": siteTitle,
@@ -318,13 +338,23 @@ export default async function PostPage({ params }: Props) {
 
             {/* Meta row */}
             <div className="flex flex-wrap items-center gap-6 mt-8 pt-6 border-t border-brand-100">
-              <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent-400 to-indigo-500 flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2.5">
+                  {allAuthors.map((auth, index) => (
+                    <div
+                      key={index}
+                      className="w-9 h-9 rounded-full border-2 border-white bg-gradient-to-br from-accent-400 to-indigo-500 flex items-center justify-center shadow-sm relative z-[2] first:z-[3]"
+                      title={auth.name}
+                    >
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                  ))}
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-brand-900">{post.author.name ?? "AlifX Staff"}</p>
-                  <p className="text-[9px] text-brand-300 font-bold uppercase tracking-wider">Author</p>
+                  <p className="text-xs font-bold text-brand-900 leading-tight">{authorsText}</p>
+                  <p className="text-[9px] text-brand-300 font-bold uppercase tracking-wider mt-0.5">
+                    {allAuthors.length > 1 ? "Authors" : "Author"}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-1.5 text-brand-400">
@@ -418,9 +448,13 @@ export default async function PostPage({ params }: Props) {
                   <span className="text-[10px] font-bold text-brand-700">{mins} min</span>
                 </div>
                 <div className="h-px bg-brand-50" />
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-brand-400">Author</span>
-                  <span className="text-[10px] font-bold text-brand-700">{post.author.name ?? "AlifX Staff"}</span>
+                <div className="flex items-start justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-brand-400">
+                    {allAuthors.length > 1 ? "Authors" : "Author"}
+                  </span>
+                  <span className="text-[10px] font-bold text-brand-700 text-right max-w-[180px] break-words">
+                    {authorsText}
+                  </span>
                 </div>
               </div>
               <div className="pt-1">
@@ -433,18 +467,22 @@ export default async function PostPage({ params }: Props) {
             <TrendingSidebar posts={trending} />
 
             {/* Author card */}
-            <div className="bg-white rounded-2xl border border-brand-100/60 p-5">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-brand-300 mb-4">Written by</p>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent-400 to-indigo-500 flex-shrink-0 flex items-center justify-center">
-                  <User className="w-5 h-5 text-white" />
+            <div className="bg-white rounded-2xl border border-brand-100/60 p-5 space-y-4">
+              <p className="text-[9px] font-bold uppercase tracking-widest text-brand-300">
+                {allAuthors.length > 1 ? "Written by Contributors" : "Written by"}
+              </p>
+              {allAuthors.map((auth, idx) => (
+                <div key={idx} className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-400 to-indigo-500 flex-shrink-0 flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-brand-900 text-xs">{auth.name}</p>
+                    <p className="text-[8px] text-brand-400 font-medium mt-0.5">Contributor at NEXUS</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-bold text-brand-900 text-sm">{post.author.name ?? "AlifX Staff"}</p>
-                  <p className="text-[9px] text-brand-400 font-medium mt-0.5">Tech Journalist at NEXUS</p>
-                </div>
-              </div>
-              <p className="text-xs text-brand-400 leading-relaxed mt-4">
+              ))}
+              <p className="text-xs text-brand-400 leading-relaxed pt-2 border-t border-brand-50">
                 Covering the intersection of technology, culture, and the future since 2024.
               </p>
             </div>

@@ -44,7 +44,8 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session || (session.user as any)?.role !== "ADMIN") {
+  const role = (session?.user as any)?.role;
+  if (!session || (role !== "ADMIN" && role !== "AUTHOR")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -59,6 +60,9 @@ export async function POST(req: NextRequest) {
     const authorId = (session.user as any).id ?? data.authorId;
     if (!authorId) return NextResponse.json({ error: "Author not found" }, { status: 400 });
 
+    const coAuthors = body.coAuthors;
+    const coAuthorsJson = Array.isArray(coAuthors) ? JSON.stringify(coAuthors) : null;
+
     // If this is an existing draft (id provided), update instead
     if (body.id) {
       const post = await prisma.post.update({
@@ -71,6 +75,7 @@ export async function POST(req: NextRequest) {
           coverImage: data.coverImage ?? null,
           published: data.published,
           categoryId: data.categoryId,
+          coAuthorsJson,
           updatedAt: new Date(),
         },
       });
@@ -93,6 +98,7 @@ export async function POST(req: NextRequest) {
         published: data.published,
         authorId,
         categoryId: data.categoryId,
+        coAuthorsJson,
       },
     });
 
@@ -105,7 +111,8 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session || (session.user as any)?.role !== "ADMIN") {
+  const role = (session?.user as any)?.role;
+  if (!session || (role !== "ADMIN" && role !== "AUTHOR")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   try {
@@ -126,6 +133,9 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Slug already in use by another post" }, { status: 409 });
     }
 
+    const coAuthors = body.coAuthors;
+    const coAuthorsJson = Array.isArray(coAuthors) ? JSON.stringify(coAuthors) : null;
+
     const post = await prisma.post.update({
       where: { id: body.id },
       data: {
@@ -136,6 +146,7 @@ export async function PUT(req: NextRequest) {
         coverImage: data.coverImage ?? null,
         published: data.published,
         categoryId: data.categoryId,
+        coAuthorsJson,
         updatedAt: new Date(),
       },
     });

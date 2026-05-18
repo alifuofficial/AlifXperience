@@ -7,7 +7,7 @@ import {
   Loader2, X, Check, Eye, EyeOff, UserCircle, FileText, MessageSquare,
 } from "lucide-react";
 
-type Role = "ADMIN" | "USER";
+type Role = "ADMIN" | "USER" | "AUTHOR";
 interface User {
   id: string;
   name: string | null;
@@ -18,11 +18,21 @@ interface User {
 }
 
 function RoleBadge({ role }: { role: Role }) {
-  return role === "ADMIN" ? (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-600/10 text-accent-700 text-[9px] font-bold uppercase tracking-wider">
-      <Shield className="w-2.5 h-2.5" /> Admin
-    </span>
-  ) : (
+  if (role === "ADMIN") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-600/10 text-accent-700 text-[9px] font-bold uppercase tracking-wider">
+        <Shield className="w-2.5 h-2.5" /> Admin
+      </span>
+    );
+  }
+  if (role === "AUTHOR") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-600/10 text-indigo-700 text-[9px] font-bold uppercase tracking-wider">
+        <Pencil className="w-2.5 h-2.5" /> Author
+      </span>
+    );
+  }
+  return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-100 text-brand-500 text-[9px] font-bold uppercase tracking-wider">
       <UserCircle className="w-2.5 h-2.5" /> User
     </span>
@@ -111,16 +121,22 @@ function UserModal({ user, onClose, onSave }: {
           </div>
           <div>
             <label className="text-[9px] font-bold uppercase tracking-widest text-brand-400 block mb-2">Role</label>
-            <div className="grid grid-cols-2 gap-2">
-              {(["USER", "ADMIN"] as Role[]).map((r) => (
+            <div className="grid grid-cols-3 gap-2">
+              {(["USER", "AUTHOR", "ADMIN"] as Role[]).map((r) => (
                 <button key={r} type="button" onClick={() => setRole(r)}
-                  className={`flex items-center justify-center gap-2 py-2.5 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all ${
+                  className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all ${
                     role === r
                       ? "bg-brand-900 text-white border-brand-900"
                       : "bg-brand-50 text-brand-500 border-brand-200 hover:border-brand-400"
                   }`}
                 >
-                  {r === "ADMIN" ? <Shield className="w-3 h-3" /> : <UserCircle className="w-3 h-3" />}
+                  {r === "ADMIN" ? (
+                    <Shield className="w-3 h-3" />
+                  ) : r === "AUTHOR" ? (
+                    <Pencil className="w-3 h-3" />
+                  ) : (
+                    <UserCircle className="w-3 h-3" />
+                  )}
                   {r}
                 </button>
               ))}
@@ -148,14 +164,20 @@ function UserModal({ user, onClose, onSave }: {
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function UsersPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<"create" | User | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
-  useEffect(() => { fetchUsers(); }, []);
+  const role = (session?.user as any)?.role;
+
+  useEffect(() => {
+    if (role === "ADMIN") {
+      fetchUsers();
+    }
+  }, [role]);
 
   async function fetchUsers() {
     setLoading(true);
@@ -164,6 +186,28 @@ export default function UsersPage() {
       setUsers(await res.json());
     } catch { }
     finally { setLoading(false); }
+  }
+
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-accent-600" />
+      </div>
+    );
+  }
+
+  if (role !== "ADMIN") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[450px] space-y-4">
+        <div className="p-3 bg-red-50 text-red-600 rounded-full">
+          <ShieldOff className="w-8 h-8" />
+        </div>
+        <div className="text-center max-w-sm">
+          <h2 className="text-lg font-bold text-brand-900">Access Denied</h2>
+          <p className="text-xs text-brand-400 mt-1 font-medium">You do not have the required permissions to access this management area. Please contact system administrator.</p>
+        </div>
+      </div>
+    );
   }
 
   const handleCreate = async (data: any) => {
@@ -187,7 +231,7 @@ export default function UsersPage() {
 
   const toggleRole = async (user: User) => {
     setTogglingId(user.id);
-    const newRole: Role = user.role === "ADMIN" ? "USER" : "ADMIN";
+    const newRole: Role = user.role === "USER" ? "AUTHOR" : user.role === "AUTHOR" ? "ADMIN" : "USER";
     try {
       const res = await fetch(`/api/users/${user.id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ role: newRole }),

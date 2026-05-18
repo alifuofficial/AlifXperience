@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
   FileText,
@@ -211,6 +212,11 @@ function timeAgo(dateString: string): string {
 
 // ─── Main Dashboard ────────────────────────────────────────────────────────────
 export default function AdminDashboard() {
+  const { data: session } = useSession();
+  const name = session?.user?.name || "Author";
+  const role = (session?.user as any)?.role || "USER";
+  const isAdmin = role === "ADMIN";
+
   const [activeTab, setActiveTab] = useState<"posts" | "users">("posts");
   const [dbData, setDbData] = useState<DBData | null>(null);
   const [gaData, setGaData] = useState<GAData | null>(null);
@@ -248,7 +254,7 @@ export default function AdminDashboard() {
 
   const kpis = [
     {
-      label: "Total Posts",
+      label: isAdmin ? "Total Posts" : "My Posts",
       value: dbData.totalPosts,
       spark: [10, 15, 20, 22, dbData.totalPosts],
       change: `+${dbData.recentPosts.length}`,
@@ -270,7 +276,7 @@ export default function AdminDashboard() {
       bg: "bg-violet-50",
     },
     {
-      label: "Page Views",
+      label: isAdmin ? "Page Views" : "My Post Views",
       value: gaData.totalViews,
       spark: gaData.weeklyViews,
       change: `${gaData.trend === "up" ? "+" : "-"}${gaData.changePercent}%`,
@@ -305,13 +311,33 @@ export default function AdminDashboard() {
     },
   ];
 
+  const filteredKPIs = kpis.filter((kpi) => {
+    if (!isAdmin && kpi.label === "Registered Users") return false;
+    if (!isAdmin && kpi.label === "Ad Revenue") return false;
+    return true;
+  });
+
+  const tabs = isAdmin ? (["posts", "users"] as const) : (["posts"] as const);
+
+  const quickActions = isAdmin
+    ? [
+        { label: "New Post", href: "/admin/posts/new", primary: true },
+        { label: "Manage Categories", href: "/admin/categories", primary: false },
+        { label: "Settings & Analytics", href: "/admin/settings", primary: false },
+        { label: "User Management", href: "/admin/users", primary: false },
+      ]
+    : [
+        { label: "New Post", href: "/admin/posts/new", primary: true },
+        { label: "Manage My Posts", href: "/admin/posts", primary: false },
+      ];
+
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="flex items-end justify-between">
         <div>
           <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-accent-600 mb-1">Dashboard</p>
-          <h1 className="text-3xl font-bold text-brand-900 tracking-tight">Good morning, Admin 👋</h1>
+          <h1 className="text-3xl font-bold text-brand-900 tracking-tight">Good morning, {name} 👋</h1>
           <p className="text-brand-400 text-sm mt-1">Here's what's happening with AlifXperience today.</p>
         </div>
         <Link
@@ -324,7 +350,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* GA Mock Alert Indicator if needed */}
-      {gaData.isMock && (
+      {isAdmin && gaData.isMock && (
         <div className="flex items-center justify-between gap-3 p-4 bg-amber-50 border border-amber-100 rounded-xl">
           <div className="flex items-center gap-3">
             <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
@@ -345,7 +371,7 @@ export default function AdminDashboard() {
       )}
 
       {/* GA Live Active Indicator */}
-      {!gaData.isMock && (
+      {isAdmin && !gaData.isMock && (
         <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
           <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 animate-pulse" />
           <div>
@@ -358,8 +384,8 @@ export default function AdminDashboard() {
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        {kpis.map((s) => (
+      <div className={`grid grid-cols-2 ${isAdmin ? "xl:grid-cols-4" : "xl:grid-cols-3"} gap-4`}>
+        {filteredKPIs.map((s) => (
           <div key={s.label} className="bg-white rounded-xl border border-brand-100/60 p-5 hover:shadow-md hover:shadow-brand-900/5 transition-all relative">
             {s.isMock && (
               <span className="absolute top-3 right-3 text-[7px] font-extrabold uppercase tracking-wider bg-amber-500 text-white px-1.5 py-0.5 rounded shadow-sm">
@@ -438,7 +464,7 @@ export default function AdminDashboard() {
         <div className="xl:col-span-2 bg-white rounded-xl border border-brand-100/60 overflow-hidden">
           <div className="flex items-center justify-between px-6 pt-5 pb-0">
             <div className="flex gap-4">
-              {(["posts", "users"] as const).map((tab) => (
+              {tabs.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -452,7 +478,7 @@ export default function AdminDashboard() {
                 </button>
               ))}
             </div>
-            <Link href={`/admin/${activeTab}`} className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-brand-400 hover:text-accent-600 transition-colors">
+            <Link href={activeTab === "posts" ? "/admin/posts" : "/admin/users"} className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-brand-400 hover:text-accent-600 transition-colors">
               View All <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -510,12 +536,7 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-xl border border-brand-100/60 p-5">
             <h2 className="text-[10px] font-bold text-brand-900 uppercase tracking-wider mb-4">Quick Actions</h2>
             <div className="space-y-2">
-              {[
-                { label: "New Post", href: "/admin/posts/new", primary: true },
-                { label: "Manage Categories", href: "/admin/categories", primary: false },
-                { label: "Settings & Analytics", href: "/admin/settings", primary: false },
-                { label: "User Management", href: "/admin/users", primary: false },
-              ].map((action) => (
+              {quickActions.map((action) => (
                 <Link
                   key={action.label}
                   href={action.href}

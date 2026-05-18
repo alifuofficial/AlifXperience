@@ -101,6 +101,14 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function SettingsPage() {
   const { data: session } = useSession();
+  const role = (session?.user as any)?.role || "USER";
+  const isAdmin = role === "ADMIN";
+
+  const filteredTabs = TABS.filter((t) => {
+    if (isAdmin) return true;
+    return t.id === "profile";
+  });
+
   const [tab, setTab] = useState<Tab>("profile");
 
   // Settings state
@@ -258,7 +266,7 @@ export default function SettingsPage() {
       {/* Sidebar nav */}
       <nav className="w-48 flex-shrink-0 space-y-0.5">
         <p className="text-[8px] font-bold uppercase tracking-[0.25em] text-brand-300 px-3 mb-3">Settings</p>
-        {TABS.map((t) => (
+        {filteredTabs.map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all text-[11px] font-bold uppercase tracking-wider group ${
               tab === t.id ? "bg-brand-900 text-white" : "text-brand-400 hover:text-brand-900 hover:bg-white"

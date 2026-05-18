@@ -8,6 +8,7 @@ import { existsSync } from "fs";
 export const dynamic = "force-dynamic";
 
 const MENUS_PATH = path.join(process.cwd(), "data", "menus.json");
+const FOOTER_MENUS_PATH = path.join(process.cwd(), "data", "footer_menus.json");
 
 const DEFAULT_MENUS = [
   { id: "1", name: "Home", href: "/", children: [] },
@@ -19,19 +20,32 @@ const DEFAULT_MENUS = [
   { id: "7", name: "About Us", href: "/about", children: [] }
 ];
 
-async function readMenus() {
+const DEFAULT_FOOTER_MENUS = [
+  { id: "f1", name: "AI & Machine Learning", href: "/category/ai", children: [] },
+  { id: "f2", name: "Hardware", href: "/category/hardware", children: [] },
+  { id: "f3", name: "Cybersecurity", href: "/category/security", children: [] },
+  { id: "f4", name: "Space Tech", href: "/category/space", children: [] },
+  { id: "f5", name: "Software", href: "/category/software", children: [] },
+  { id: "f6", name: "Reviews", href: "/category/software", children: [] }
+];
+
+async function readMenus(location: string) {
+  const filePath = location === "footer" ? FOOTER_MENUS_PATH : MENUS_PATH;
+  const defaults = location === "footer" ? DEFAULT_FOOTER_MENUS : DEFAULT_MENUS;
   try {
-    if (!existsSync(MENUS_PATH)) return DEFAULT_MENUS;
-    const raw = await readFile(MENUS_PATH, "utf-8");
+    if (!existsSync(filePath)) return defaults;
+    const raw = await readFile(filePath, "utf-8");
     return JSON.parse(raw);
   } catch {
-    return DEFAULT_MENUS;
+    return defaults;
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const menus = await readMenus();
+    const { searchParams } = new URL(req.url);
+    const location = searchParams.get("location") || "header";
+    const menus = await readMenus(location);
     return NextResponse.json(menus, { status: 200 });
   } catch (error: any) {
     console.error("[GET /api/menus]", error);
@@ -46,13 +60,20 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const { searchParams } = new URL(req.url);
+    const location = searchParams.get("location") || "header";
+    const filePath = location === "footer" ? FOOTER_MENUS_PATH : MENUS_PATH;
+
     const body = await req.json();
     if (!Array.isArray(body)) {
       return NextResponse.json({ error: "Invalid menus data. Must be an array." }, { status: 400 });
     }
 
-    await writeFile(MENUS_PATH, JSON.stringify(body, null, 2), "utf-8");
-    return NextResponse.json({ message: "Menus saved successfully", menus: body }, { status: 200 });
+    await writeFile(filePath, JSON.stringify(body, null, 2), "utf-8");
+    return NextResponse.json({ 
+      message: `Menus for ${location} saved successfully`, 
+      menus: body 
+    }, { status: 200 });
   } catch (error: any) {
     console.error("[POST /api/menus]", error);
     return NextResponse.json({ error: error.message || "Failed to save menus" }, { status: 500 });

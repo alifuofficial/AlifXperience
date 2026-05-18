@@ -39,7 +39,8 @@ function getMimeFromExt(ext: string): string {
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session || (session.user as any)?.role !== "ADMIN") {
+  const role = (session?.user as any)?.role;
+  if (!session || (role !== "ADMIN" && role !== "AUTHOR")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

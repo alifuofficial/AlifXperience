@@ -30,8 +30,29 @@ function StatusBadge({ published }: { published: boolean }) {
   );
 }
 
+function getAuthorsText(post: any, userMap: Map<string, string>) {
+  const primaryName = post.author?.name || "—";
+  const authors = [primaryName];
+  if (post.coAuthorsJson) {
+    try {
+      const coAuthorIds = JSON.parse(post.coAuthorsJson);
+      if (Array.isArray(coAuthorIds)) {
+        coAuthorIds.forEach((id) => {
+          const name = userMap.get(id);
+          if (name && !authors.includes(name)) {
+            authors.push(name);
+          }
+        });
+      }
+    } catch {}
+  }
+  return authors.join(" & ");
+}
+
 export default async function AdminPostsPage() {
   const posts = await getPosts();
+  const allUsers = await prisma.user.findMany({ select: { id: true, name: true, email: true } });
+  const userMap = new Map(allUsers.map((u) => [u.id, u.name || u.email]));
 
   return (
     <div className="space-y-6">
@@ -127,8 +148,8 @@ export default async function AdminPostsPage() {
                   </span>
 
                   {/* Author */}
-                  <span className="text-[10px] font-bold text-brand-400 truncate">
-                    {post.author.name ?? "—"}
+                  <span className="text-[10px] font-bold text-brand-400 truncate" title={getAuthorsText(post, userMap)}>
+                    {getAuthorsText(post, userMap)}
                   </span>
 
                   {/* Date */}

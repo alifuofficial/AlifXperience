@@ -12,7 +12,8 @@ function slugify(str: string) {
 // Used by the 30s interval and 3s debounce on the new post page
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session || (session.user as any)?.role !== "ADMIN") {
+  const role = (session?.user as any)?.role;
+  if (!session || (role !== "ADMIN" && role !== "AUTHOR")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -42,11 +43,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const coAuthors = body.coAuthors;
+    const coAuthorsJson = Array.isArray(coAuthors) ? JSON.stringify(coAuthors) : null;
+
     if (body.id) {
       // Update existing draft
       const updated = await prisma.post.update({
         where: { id: body.id },
-        data: { title, slug, content, excerpt: body.excerpt ?? null, coverImage: body.coverImage || null, categoryId, published: false, updatedAt: new Date() },
+        data: { title, slug, content, excerpt: body.excerpt ?? null, coverImage: body.coverImage || null, categoryId, coAuthorsJson, published: false, updatedAt: new Date() },
       });
       return NextResponse.json({ id: updated.id });
     } else {
@@ -56,7 +60,7 @@ export async function POST(req: NextRequest) {
       if (existing) finalSlug = `${slug}-${Date.now()}`;
 
       const created = await prisma.post.create({
-        data: { title, slug: finalSlug, content, excerpt: body.excerpt ?? null, coverImage: body.coverImage || null, published: false, authorId, categoryId },
+        data: { title, slug: finalSlug, content, excerpt: body.excerpt ?? null, coverImage: body.coverImage || null, coAuthorsJson, published: false, authorId, categoryId },
       });
       return NextResponse.json({ id: created.id });
     }

@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { 
   Megaphone, Plus, Pencil, Trash2, Check, X, 
   Loader2, ExternalLink, Sparkles, BarChart2, Eye, 
   MousePointerClick, CheckCircle, Ban, ArrowRight,
   ImageIcon, DollarSign, Package, TrendingUp, Calendar,
-  Phone, Mail
+  Phone, Mail, ShieldOff
 } from "lucide-react";
 import MediaSelectorModal from "@/components/MediaSelectorModal";
 
@@ -72,6 +73,9 @@ const slotLabels: Record<string, { label: string; color: string; location: strin
 const allPossibleSlots: { id: string; label: string; description: string; implemented: boolean }[] = [];
 
 export default function AdsDashboard() {
+  const { data: session, status: sessionStatus } = useSession();
+  const role = (session?.user as any)?.role;
+
   const [ads, setAds] = useState<Ad[]>([]);
   const [requests, setRequests] = useState<AdRequest[]>([]);
   const [packages, setPackages] = useState<AdPackage[]>([]);
@@ -110,8 +114,33 @@ export default function AdsDashboard() {
   const [pkgSubmitting, setPkgSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (role === "ADMIN") {
+      fetchData();
+    }
+  }, [role]);
+
+  if (sessionStatus === "loading") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+        <Loader2 className="w-8 h-8 text-accent-500 animate-spin" />
+        <p className="text-xs font-bold uppercase tracking-widest text-brand-400">Authenticating Session...</p>
+      </div>
+    );
+  }
+
+  if (role !== "ADMIN") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[450px] space-y-4">
+        <div className="p-3 bg-red-50 text-red-600 rounded-full">
+          <ShieldOff className="w-8 h-8" />
+        </div>
+        <div className="text-center max-w-sm">
+          <h2 className="text-lg font-bold text-brand-900">Access Denied</h2>
+          <p className="text-xs text-brand-400 mt-1 font-medium">You do not have the required permissions to access this management area. Please contact system administrator.</p>
+        </div>
+      </div>
+    );
+  }
 
   async function fetchData() {
     setLoading(true);

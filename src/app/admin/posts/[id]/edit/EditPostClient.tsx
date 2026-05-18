@@ -41,6 +41,7 @@ function slugify(str: string) {
 
 // ─── Cover Image Upload Panel ──────────────────────────────────────────────────
 import MediaSelectorModal from "@/components/MediaSelectorModal";
+import CoAuthorsPanel from "@/components/CoAuthorsPanel";
 
 function CoverImagePanel({
   coverImage, setCoverImage,
@@ -256,6 +257,17 @@ export default function EditPostClient({ initialPost }: { initialPost: any }) {
   const [categoryId, setCategoryId] = useState(initialPost.categoryId || "");
   const [published, setPublished] = useState(initialPost.published || false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [coAuthors, setCoAuthors] = useState<string[]>(() => {
+    try {
+      if (initialPost.coAuthorsJson) {
+        const parsed = JSON.parse(initialPost.coAuthorsJson);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.error("Failed to parse initial co-authors:", e);
+    }
+    return [];
+  });
 
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -281,7 +293,7 @@ export default function EditPostClient({ initialPost }: { initialPost: any }) {
   // Mark dirty whenever content changes (to trigger auto-save)
   useEffect(() => {
     isDirtyRef.current = true;
-  }, [title, content, excerpt, coverImage, categoryId, published]);
+  }, [title, content, excerpt, coverImage, categoryId, published, coAuthors]);
 
   // ─── Auto-save Logic ─────────────────────────────────────────────
   const doAutoSave = useCallback(async () => {
@@ -299,6 +311,7 @@ export default function EditPostClient({ initialPost }: { initialPost: any }) {
         categoryId: categoryId || null,
         published: published,
         authorId: (session?.user as any)?.id || initialPost.authorId,
+        coAuthors,
       };
       const res = await fetch("/api/posts/autosave", {
         method: "POST",
@@ -312,7 +325,7 @@ export default function EditPostClient({ initialPost }: { initialPost: any }) {
     } catch {
       setAutoSaveStatus("error");
     }
-  }, [title, slug, content, excerpt, coverImage, categoryId, published, initialPost.id, session]);
+  }, [title, slug, content, excerpt, coverImage, categoryId, published, initialPost.id, session, coAuthors]);
 
   // Auto-save every 30 seconds
   useEffect(() => {
@@ -324,7 +337,7 @@ export default function EditPostClient({ initialPost }: { initialPost: any }) {
   useEffect(() => {
     const t = setTimeout(() => { if (isDirtyRef.current) doAutoSave(); }, 3000);
     return () => clearTimeout(t);
-  }, [title, content, excerpt, coverImage, categoryId, published, doAutoSave]);
+  }, [title, content, excerpt, coverImage, categoryId, published, coAuthors, doAutoSave]);
 
   // ─── Manual Save/Publish ─────────────────────────────────────────
   const handleSave = async (publish = false) => {
@@ -345,6 +358,7 @@ export default function EditPostClient({ initialPost }: { initialPost: any }) {
         categoryId,
         published: publish,
         authorId: (session?.user as any)?.id || initialPost.authorId,
+        coAuthors,
       };
       const res = await fetch("/api/posts", {
         method: "PUT",
@@ -489,6 +503,13 @@ export default function EditPostClient({ initialPost }: { initialPost: any }) {
             setCategories={setCategories}
             categoryId={categoryId}
             setCategoryId={setCategoryId}
+          />
+
+          {/* Co-Authors Selection */}
+          <CoAuthorsPanel
+            selectedIds={coAuthors}
+            onChange={setCoAuthors}
+            primaryAuthorId={initialPost.authorId}
           />
 
           {/* Cover Image */}

@@ -1,0 +1,39 @@
+[
+  {
+    "id": "f1",
+    "name": "AI & Machine Learning",
+    "href": "/category/ai",
+    "children": []
+  },
+  {
+    "id": "f2",
+    "name": "Hardware",
+    "href": "/category/hardware",
+    "children": []
+  },
+  {
+    "id": "f3",
+    "name": "Cybersecurity",
+    "href": "/category/security",
+    "children": []
+  },
+  {
+    "id": "f4",
+    "name": "Space Tech",
+    "href": "/category/space",
+    "children": []
+  },
+  {
+    "id": "f5",
+    "name": "Software",
+    "href": "/category/software",
+    "children": [
+      {
+        "id": "f6",
+        "name": "Reviews",
+        "href": "/category/software",
+        "children": []
+      }
+    ]
+  }
+]

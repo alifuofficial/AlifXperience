@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Zap, Mail, ArrowRight, Loader2, Check } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdSpace from "./AdSpace";
 
 function GithubIcon({ className }: { className?: string }) {
@@ -39,11 +39,11 @@ function LinkedinIcon({ className }: { className?: string }) {
   );
 }
 
-const footerLinks = {
-  Topics: ["AI & Machine Learning", "Hardware", "Cybersecurity", "Space Tech", "Software", "Reviews"],
-  Company: ["About Us", "Editorial Policy", "Advertise", "Careers", "Contact"],
-  Legal: ["Privacy Policy", "Terms of Use", "Cookie Policy", "Sitemap"],
-};
+interface MenuItem {
+  id: string;
+  name: string;
+  href: string;
+}
 
 const socials = [
   { icon: TwitterIcon, label: "Twitter", href: "#" },
@@ -57,6 +57,29 @@ export default function Footer() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
   const [isSuccess, setIsSuccess] = useState(true);
+
+  // Dynamic Footer Topics loaded from the API
+  const [topics, setTopics] = useState<MenuItem[]>([
+    { id: "f1", name: "AI & Machine Learning", href: "/category/ai" },
+    { id: "f2", name: "Hardware", href: "/category/hardware" },
+    { id: "f3", name: "Cybersecurity", href: "/category/security" },
+    { id: "f4", name: "Space Tech", href: "/category/space" },
+    { id: "f5", name: "Software", href: "/category/software" },
+    { id: "f6", name: "Reviews", href: "/category/software" }
+  ]);
+
+  useEffect(() => {
+    fetch("/api/menus?location=footer")
+      .then((res) => {
+        if (res.ok) return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setTopics(data);
+        }
+      })
+      .catch((err) => console.error("Footer topics load failure:", err));
+  }, []);
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,30 +189,58 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Link columns */}
-          {Object.entries(footerLinks).map(([group, links]) => (
-            <div key={group} className="space-y-4">
-              <p className="text-[8px] font-bold uppercase tracking-[0.3em] text-brand-500">{group}</p>
-              <ul className="space-y-2.5">
-                {links.map((link) => {
-                  let href = "#";
-                  if (link === "About Us") href = "/about";
-                  if (link === "Privacy Policy") href = "/privacy";
-                  if (link === "Terms of Use") href = "/terms";
-                  if (link === "Sitemap") href = "/sitemap.xml";
-                  if (link === "Advertise") href = "/advertise";
-                  if (link === "Careers") href = "/careers";
-                  return (
-                    <li key={link}>
-                      <Link href={href} className="text-xs text-brand-400 hover:text-white transition-colors font-medium">
-                        {link}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
+          {/* Topics (Dynamic) */}
+          <div className="space-y-4">
+            <p className="text-[8px] font-bold uppercase tracking-[0.3em] text-brand-500">Topics</p>
+            <ul className="space-y-2.5">
+              {topics.map((item) => (
+                <li key={item.id}>
+                  <Link href={item.href} className="text-xs text-brand-400 hover:text-white transition-colors font-medium">
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Company Column */}
+          <div className="space-y-4">
+            <p className="text-[8px] font-bold uppercase tracking-[0.3em] text-brand-500">Company</p>
+            <ul className="space-y-2.5">
+              {[
+                { name: "About Us", href: "/about" },
+                { name: "Editorial Policy", href: "/editorial-policy" },
+                { name: "Advertise", href: "/advertise" },
+                { name: "Careers", href: "/careers" },
+                { name: "Contact", href: "/contact" }
+              ].map((link) => (
+                <li key={link.name}>
+                  <Link href={link.href} className="text-xs text-brand-400 hover:text-white transition-colors font-medium">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Legal Column */}
+          <div className="space-y-4">
+            <p className="text-[8px] font-bold uppercase tracking-[0.3em] text-brand-500">Legal</p>
+            <ul className="space-y-2.5">
+              {[
+                { name: "Privacy Policy", href: "/privacy" },
+                { name: "Terms of Use", href: "/terms" },
+                { name: "Cookie Policy", href: "/cookie-policy" },
+                { name: "Sitemap", href: "/sitemap.xml" }
+              ].map((link) => (
+                <li key={link.name}>
+                  <Link href={link.href} className="text-xs text-brand-400 hover:text-white transition-colors font-medium">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         {/* Footer Banner Ad */}

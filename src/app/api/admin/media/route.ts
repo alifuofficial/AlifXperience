@@ -23,7 +23,8 @@ async function readSettings() {
 // GET: List all media items
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session || (session.user as any)?.role !== "ADMIN") {
+  const role = (session?.user as any)?.role;
+  if (!session || (role !== "ADMIN" && role !== "AUTHOR")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -80,7 +81,8 @@ export async function GET(req: NextRequest) {
 // POST: Upload a new media item
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session || (session.user as any)?.role !== "ADMIN") {
+  const role = (session?.user as any)?.role;
+  if (!session || (role !== "ADMIN" && role !== "AUTHOR")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

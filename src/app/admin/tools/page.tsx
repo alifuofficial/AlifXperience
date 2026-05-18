@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { 
   Wrench, 
   FileDown, 
@@ -14,10 +15,14 @@ import {
   Database,
   Server,
   HardDrive,
-  RefreshCw
+  RefreshCw,
+  ShieldOff
 } from "lucide-react";
 
 export default function AdminToolsPage() {
+  const { data: session, status: sessionStatus } = useSession();
+  const role = (session?.user as any)?.role;
+
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{
     success: boolean;
@@ -66,8 +71,33 @@ export default function AdminToolsPage() {
   };
 
   useEffect(() => {
-    fetchDbInfo();
-  }, []);
+    if (role === "ADMIN") {
+      fetchDbInfo();
+    }
+  }, [role]);
+
+  if (sessionStatus === "loading") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+        <Loader2 className="w-8 h-8 text-accent-500 animate-spin" />
+        <p className="text-xs font-bold uppercase tracking-widest text-brand-400">Authenticating Session...</p>
+      </div>
+    );
+  }
+
+  if (role !== "ADMIN") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[450px] space-y-4">
+        <div className="p-3 bg-red-50 text-red-600 rounded-full">
+          <ShieldOff className="w-8 h-8" />
+        </div>
+        <div className="text-center max-w-sm">
+          <h2 className="text-lg font-bold text-brand-900">Access Denied</h2>
+          <p className="text-xs text-brand-400 mt-1 font-medium">You do not have the required permissions to access this management area. Please contact system administrator.</p>
+        </div>
+      </div>
+    );
+  }
 
   const triggerServerBackup = async () => {
     setBackupActionLoading(true);

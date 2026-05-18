@@ -144,7 +144,8 @@ exports.Prisma.PostScalarFieldEnum = {
   authorId: 'authorId',
   categoryId: 'categoryId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  coAuthorsJson: 'coAuthorsJson'
 };
 
 exports.Prisma.CommentScalarFieldEnum = {
@@ -232,7 +233,8 @@ exports.Prisma.NullsOrder = {
 };
 exports.Role = exports.$Enums.Role = {
   USER: 'USER',
-  ADMIN: 'ADMIN'
+  ADMIN: 'ADMIN',
+  AUTHOR: 'AUTHOR'
 };
 
 exports.Prisma.ModelName = {

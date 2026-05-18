@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 import {
   LayoutDashboard,
@@ -21,6 +21,7 @@ import {
   ImageIcon,
   Megaphone,
   Menu,
+  MessageSquare,
 } from "lucide-react";
 
 const navItems = [
@@ -32,14 +33,24 @@ const navItems = [
   { label: "Categories", href: "/admin/categories", icon: FolderTree },
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Newsletter", href: "/admin/newsletter", icon: Mail },
+  { label: "Messages", href: "/admin/messages", icon: MessageSquare },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { label: "Tools", href: "/admin/tools", icon: Wrench },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 export default function AdminSidebar() {
+  const { data: session } = useSession();
+  const role = (session?.user as any)?.role || "USER";
+  const isAdmin = role === "ADMIN";
+
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+
+  const filteredNavItems = navItems.filter((item) => {
+    if (isAdmin) return true;
+    return ["Overview", "Posts", "Media", "Settings"].includes(item.label);
+  });
 
   return (
     <aside
@@ -80,7 +91,7 @@ export default function AdminSidebar() {
         {!collapsed && (
           <p className="text-white/20 text-[8px] font-bold uppercase tracking-widest px-3 mb-3">Main Menu</p>
         )}
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const active = pathname === item.href;
           return (
             <Link

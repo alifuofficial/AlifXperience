@@ -27,7 +27,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       if (conflict) return NextResponse.json({ error: "Email already in use" }, { status: 409 });
       data.email = email.trim();
     }
-    if (role === "ADMIN" || role === "USER") data.role = role;
+    if (role === "ADMIN" || role === "USER" || role === "AUTHOR") data.role = role;
     if (password?.trim()) data.password = await bcrypt.hash(password, 12);
 
     const user = await prisma.user.update({

@@ -70,7 +70,8 @@ export type AdRevenue = $Result.DefaultSelection<Prisma.$AdRevenuePayload>
 export namespace $Enums {
   export const Role: {
   USER: 'USER',
-  ADMIN: 'ADMIN'
+  ADMIN: 'ADMIN',
+  AUTHOR: 'AUTHOR'
 };
 
 export type Role = (typeof Role)[keyof typeof Role]
@@ -3999,6 +4000,7 @@ export namespace Prisma {
     categoryId: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    coAuthorsJson: string | null
   }
 
   export type PostMaxAggregateOutputType = {
@@ -4013,6 +4015,7 @@ export namespace Prisma {
     categoryId: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    coAuthorsJson: string | null
   }
 
   export type PostCountAggregateOutputType = {
@@ -4027,6 +4030,7 @@ export namespace Prisma {
     categoryId: number
     createdAt: number
     updatedAt: number
+    coAuthorsJson: number
     _all: number
   }
 
@@ -4043,6 +4047,7 @@ export namespace Prisma {
     categoryId?: true
     createdAt?: true
     updatedAt?: true
+    coAuthorsJson?: true
   }
 
   export type PostMaxAggregateInputType = {
@@ -4057,6 +4062,7 @@ export namespace Prisma {
     categoryId?: true
     createdAt?: true
     updatedAt?: true
+    coAuthorsJson?: true
   }
 
   export type PostCountAggregateInputType = {
@@ -4071,6 +4077,7 @@ export namespace Prisma {
     categoryId?: true
     createdAt?: true
     updatedAt?: true
+    coAuthorsJson?: true
     _all?: true
   }
 
@@ -4158,6 +4165,7 @@ export namespace Prisma {
     categoryId: string
     createdAt: Date
     updatedAt: Date
+    coAuthorsJson: string | null
     _count: PostCountAggregateOutputType | null
     _min: PostMinAggregateOutputType | null
     _max: PostMaxAggregateOutputType | null
@@ -4189,6 +4197,7 @@ export namespace Prisma {
     categoryId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    coAuthorsJson?: boolean
     comments?: boolean | Post$commentsArgs<ExtArgs>
     category?: boolean | CategoryDefaultArgs<ExtArgs>
     author?: boolean | UserDefaultArgs<ExtArgs>
@@ -4207,6 +4216,7 @@ export namespace Prisma {
     categoryId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    coAuthorsJson?: boolean
     category?: boolean | CategoryDefaultArgs<ExtArgs>
     author?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["post"]>
@@ -4223,6 +4233,7 @@ export namespace Prisma {
     categoryId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    coAuthorsJson?: boolean
     category?: boolean | CategoryDefaultArgs<ExtArgs>
     author?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["post"]>
@@ -4239,9 +4250,10 @@ export namespace Prisma {
     categoryId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    coAuthorsJson?: boolean
   }
 
-  export type PostOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "slug" | "content" | "excerpt" | "coverImage" | "published" | "authorId" | "categoryId" | "createdAt" | "updatedAt", ExtArgs["result"]["post"]>
+  export type PostOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "slug" | "content" | "excerpt" | "coverImage" | "published" | "authorId" | "categoryId" | "createdAt" | "updatedAt" | "coAuthorsJson", ExtArgs["result"]["post"]>
   export type PostInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     comments?: boolean | Post$commentsArgs<ExtArgs>
     category?: boolean | CategoryDefaultArgs<ExtArgs>
@@ -4276,6 +4288,7 @@ export namespace Prisma {
       categoryId: string
       createdAt: Date
       updatedAt: Date
+      coAuthorsJson: string | null
     }, ExtArgs["result"]["post"]>
     composites: {}
   }
@@ -4713,6 +4726,7 @@ export namespace Prisma {
     readonly categoryId: FieldRef<"Post", 'String'>
     readonly createdAt: FieldRef<"Post", 'DateTime'>
     readonly updatedAt: FieldRef<"Post", 'DateTime'>
+    readonly coAuthorsJson: FieldRef<"Post", 'String'>
   }
     
 
@@ -12667,7 +12681,8 @@ export namespace Prisma {
     authorId: 'authorId',
     categoryId: 'categoryId',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    coAuthorsJson: 'coAuthorsJson'
   };
 
   export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum]
@@ -12962,6 +12977,7 @@ export namespace Prisma {
     categoryId?: StringFilter<"Post"> | string
     createdAt?: DateTimeFilter<"Post"> | Date | string
     updatedAt?: DateTimeFilter<"Post"> | Date | string
+    coAuthorsJson?: StringNullableFilter<"Post"> | string | null
     comments?: CommentListRelationFilter
     category?: XOR<CategoryScalarRelationFilter, CategoryWhereInput>
     author?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -12979,6 +12995,7 @@ export namespace Prisma {
     categoryId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    coAuthorsJson?: SortOrderInput | SortOrder
     comments?: CommentOrderByRelationAggregateInput
     category?: CategoryOrderByWithRelationInput
     author?: UserOrderByWithRelationInput
@@ -12999,6 +13016,7 @@ export namespace Prisma {
     categoryId?: StringFilter<"Post"> | string
     createdAt?: DateTimeFilter<"Post"> | Date | string
     updatedAt?: DateTimeFilter<"Post"> | Date | string
+    coAuthorsJson?: StringNullableFilter<"Post"> | string | null
     comments?: CommentListRelationFilter
     category?: XOR<CategoryScalarRelationFilter, CategoryWhereInput>
     author?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -13016,6 +13034,7 @@ export namespace Prisma {
     categoryId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    coAuthorsJson?: SortOrderInput | SortOrder
     _count?: PostCountOrderByAggregateInput
     _max?: PostMaxOrderByAggregateInput
     _min?: PostMinOrderByAggregateInput
@@ -13036,6 +13055,7 @@ export namespace Prisma {
     categoryId?: StringWithAggregatesFilter<"Post"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Post"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Post"> | Date | string
+    coAuthorsJson?: StringNullableWithAggregatesFilter<"Post"> | string | null
   }
 
   export type CommentWhereInput = {
@@ -13642,6 +13662,7 @@ export namespace Prisma {
     published?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    coAuthorsJson?: string | null
     comments?: CommentCreateNestedManyWithoutPostInput
     category: CategoryCreateNestedOneWithoutPostsInput
     author: UserCreateNestedOneWithoutPostsInput
@@ -13659,6 +13680,7 @@ export namespace Prisma {
     categoryId: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    coAuthorsJson?: string | null
     comments?: CommentUncheckedCreateNestedManyWithoutPostInput
   }
 
@@ -13672,6 +13694,7 @@ export namespace Prisma {
     published?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    coAuthorsJson?: NullableStringFieldUpdateOperationsInput | string | null
     comments?: CommentUpdateManyWithoutPostNestedInput
     category?: CategoryUpdateOneRequiredWithoutPostsNestedInput
     author?: UserUpdateOneRequiredWithoutPostsNestedInput
@@ -13689,6 +13712,7 @@ export namespace Prisma {
     categoryId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    coAuthorsJson?: NullableStringFieldUpdateOperationsInput | string | null
     comments?: CommentUncheckedUpdateManyWithoutPostNestedInput
   }
 
@@ -13704,6 +13728,7 @@ export namespace Prisma {
     categoryId: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    coAuthorsJson?: string | null
   }
 
   export type PostUpdateManyMutationInput = {
@@ -13716,6 +13741,7 @@ export namespace Prisma {
     published?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    coAuthorsJson?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type PostUncheckedUpdateManyInput = {
@@ -13730,6 +13756,7 @@ export namespace Prisma {
     categoryId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    coAuthorsJson?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type CommentCreateInput = {
@@ -14452,6 +14479,7 @@ export namespace Prisma {
     categoryId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    coAuthorsJson?: SortOrder
   }
 
   export type PostMaxOrderByAggregateInput = {
@@ -14466,6 +14494,7 @@ export namespace Prisma {
     categoryId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    coAuthorsJson?: SortOrder
   }
 
   export type PostMinOrderByAggregateInput = {
@@ -14480,6 +14509,7 @@ export namespace Prisma {
     categoryId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    coAuthorsJson?: SortOrder
   }
 
   export type BoolWithAggregatesFilter<$PrismaModel = never> = {
@@ -15352,6 +15382,7 @@ export namespace Prisma {
     published?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    coAuthorsJson?: string | null
     comments?: CommentCreateNestedManyWithoutPostInput
     category: CategoryCreateNestedOneWithoutPostsInput
   }
@@ -15367,6 +15398,7 @@ export namespace Prisma {
     categoryId: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    coAuthorsJson?: string | null
     comments?: CommentUncheckedCreateNestedManyWithoutPostInput
   }
 
@@ -15437,6 +15469,7 @@ export namespace Prisma {
     categoryId?: StringFilter<"Post"> | string
     createdAt?: DateTimeFilter<"Post"> | Date | string
     updatedAt?: DateTimeFilter<"Post"> | Date | string
+    coAuthorsJson?: StringNullableFilter<"Post"> | string | null
   }
 
   export type PostCreateWithoutCategoryInput = {
@@ -15449,6 +15482,7 @@ export namespace Prisma {
     published?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    coAuthorsJson?: string | null
     comments?: CommentCreateNestedManyWithoutPostInput
     author: UserCreateNestedOneWithoutPostsInput
   }
@@ -15464,6 +15498,7 @@ export namespace Prisma {
     authorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    coAuthorsJson?: string | null
     comments?: CommentUncheckedCreateNestedManyWithoutPostInput
   }
 
@@ -15668,6 +15703,7 @@ export namespace Prisma {
     published?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    coAuthorsJson?: string | null
     category: CategoryCreateNestedOneWithoutPostsInput
     author: UserCreateNestedOneWithoutPostsInput
   }
@@ -15684,6 +15720,7 @@ export namespace Prisma {
     categoryId: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    coAuthorsJson?: string | null
   }
 
   export type PostCreateOrConnectWithoutCommentsInput = {
@@ -15745,6 +15782,7 @@ export namespace Prisma {
     published?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    coAuthorsJson?: NullableStringFieldUpdateOperationsInput | string | null
     category?: CategoryUpdateOneRequiredWithoutPostsNestedInput
     author?: UserUpdateOneRequiredWithoutPostsNestedInput
   }
@@ -15761,6 +15799,7 @@ export namespace Prisma {
     categoryId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    coAuthorsJson?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type CommentCreateManyAuthorInput = {
@@ -15781,6 +15820,7 @@ export namespace Prisma {
     categoryId: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    coAuthorsJson?: string | null
   }
 
   export type CommentUpdateWithoutAuthorInput = {
@@ -15814,6 +15854,7 @@ export namespace Prisma {
     published?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    coAuthorsJson?: NullableStringFieldUpdateOperationsInput | string | null
     comments?: CommentUpdateManyWithoutPostNestedInput
     category?: CategoryUpdateOneRequiredWithoutPostsNestedInput
   }
@@ -15829,6 +15870,7 @@ export namespace Prisma {
     categoryId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    coAuthorsJson?: NullableStringFieldUpdateOperationsInput | string | null
     comments?: CommentUncheckedUpdateManyWithoutPostNestedInput
   }
 
@@ -15843,6 +15885,7 @@ export namespace Prisma {
     categoryId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    coAuthorsJson?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type PostCreateManyCategoryInput = {
@@ -15856,6 +15899,7 @@ export namespace Prisma {
     authorId: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    coAuthorsJson?: string | null
   }
 
   export type PostUpdateWithoutCategoryInput = {
@@ -15868,6 +15912,7 @@ export namespace Prisma {
     published?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    coAuthorsJson?: NullableStringFieldUpdateOperationsInput | string | null
     comments?: CommentUpdateManyWithoutPostNestedInput
     author?: UserUpdateOneRequiredWithoutPostsNestedInput
   }
@@ -15883,6 +15928,7 @@ export namespace Prisma {
     authorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    coAuthorsJson?: NullableStringFieldUpdateOperationsInput | string | null
     comments?: CommentUncheckedUpdateManyWithoutPostNestedInput
   }
 
@@ -15897,6 +15943,7 @@ export namespace Prisma {
     authorId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    coAuthorsJson?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type CommentCreateManyPostInput = {
