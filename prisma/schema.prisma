@@ -79,11 +79,11 @@ model Subscriber {
 model Media {
   id          String   @id @default(cuid())
   name        String   // Original filename
-  filename    String   // Generated unique name
+  filename    String   @default("") // Generated unique name
   url         String   // Public URL
-  mimeType    String   // File mime type
+  mimeType    String   @default("image/png") // File mime type
   size        Int      // File size in bytes
-  storageType String   // "LOCAL" or "FTP"
+  storageType String   @default("LOCAL") // "LOCAL" or "FTP"
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
