@@ -33,4 +33,4 @@ COPY --from=builder /app/tsconfig.json ./tsconfig.json
 EXPOSE 3000
 
 # Generate client, sync schema, and start the Next.js server
-CMD ["sh", "-c", "npx prisma generate && npx prisma db push --accept-data-loss && npm run start"]
+CMD ["sh", "-c", "npx prisma generate && npx prisma db push --accept-data-loss && node prisma/seed.js && npm run start"]
