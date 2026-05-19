@@ -105,7 +105,7 @@ export default function SignIn() {
                 <input type="checkbox" className="w-4 h-4 rounded text-brand-600 focus:ring-brand-600" />
                 <span className="text-muted">Remember me</span>
               </label>
-              <Link href="#" className="font-semibold text-brand-600 hover:underline">Forgot Password?</Link>
+              <Link href="/auth/forgot-password" className="font-semibold text-brand-600 hover:underline">Forgot Password?</Link>
             </div>
 
             <button
