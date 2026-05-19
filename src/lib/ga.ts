@@ -11,6 +11,7 @@ interface GAData {
   weeklyViews: number[];
   weekLabels: string[];
   isMock: boolean;
+  googleAnalyticsId?: string;
 }
 
 // Default fallback mock data to keep the UI beautiful
@@ -23,24 +24,29 @@ const MOCK_DATA: GAData = {
   isMock: true,
 };
 
-async function readSettings() {
+async function readSettings(): Promise<Record<string, string>> {
   try {
     const raw = await readFile(SETTINGS_PATH, "utf-8");
     return JSON.parse(raw) as Record<string, string>;
   } catch {
-    return {};
+    return {} as Record<string, string>;
   }
 }
 
 export async function getGoogleAnalyticsData(): Promise<GAData> {
   try {
     const settings = await readSettings();
+    const googleAnalyticsId = settings.googleAnalyticsId?.trim() || "";
     const propertyId = settings.gaPropertyId?.trim();
     const clientEmail = settings.gaClientEmail?.trim();
     const privateKey = settings.gaPrivateKey?.trim();
 
     if (!propertyId || !clientEmail || !privateKey) {
-      return MOCK_DATA;
+      return {
+        ...MOCK_DATA,
+        isMock: true,
+        googleAnalyticsId,
+      };
     }
 
     // Instantiation
@@ -106,7 +112,11 @@ export async function getGoogleAnalyticsData(): Promise<GAData> {
 
     // Fallback if no rows returned
     if (weeklyViews.length === 0) {
-      return MOCK_DATA;
+      return {
+        ...MOCK_DATA,
+        isMock: true,
+        googleAnalyticsId,
+      };
     }
 
     // Calculate totalViews
@@ -150,13 +160,17 @@ export async function getGoogleAnalyticsData(): Promise<GAData> {
       weeklyViews,
       weekLabels,
       isMock: false,
+      googleAnalyticsId,
     };
   } catch (err) {
     console.error("[GA4 API Error]", err);
     // Graceful fallback to mock data on error so dashboard doesn't crash
+    const settings = await readSettings().catch(() => ({} as Record<string, string>));
+    const googleAnalyticsId = settings.googleAnalyticsId?.trim() || "";
     return {
       ...MOCK_DATA,
       isMock: true,
+      googleAnalyticsId,
     };
   }
 }
