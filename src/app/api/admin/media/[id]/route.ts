@@ -71,8 +71,12 @@ export async function DELETE(
       // Local Storage Deletion
       const localFilePath = path.join(process.cwd(), "public", "uploads", item.filename);
       if (existsSync(localFilePath)) {
-        await unlink(localFilePath);
-        console.log(`[Local Delete Success] Purged file: ${localFilePath}`);
+        try {
+          await unlink(localFilePath);
+          console.log(`[Local Delete Success] Purged file: ${localFilePath}`);
+        } catch (unlinkErr) {
+          console.error(`[Local Delete Warning] Could not remove physical local file, skipping:`, unlinkErr);
+        }
       }
     }
 
