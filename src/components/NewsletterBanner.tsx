@@ -51,7 +51,7 @@ export default function NewsletterBanner({ className = "" }: { className?: strin
               rel="noopener noreferrer"
               className="block rounded-xl overflow-hidden hover:opacity-90 transition-opacity"
             >
-              <img src={ad.imageUrl} alt={ad.title} className="w-full h-auto" />
+              <img src={ad.imageUrl} alt={ad.title} className="w-full h-auto" loading="lazy" decoding="async" />
             </Link>
           </div>
         ) : null}

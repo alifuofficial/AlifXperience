@@ -230,6 +230,8 @@ export default async function Home() {
                     src={mainFeatured.coverImage}
                     alt={mainFeatured.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-103"
+                    fetchPriority="high"
+                    decoding="async"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-brand-800 to-indigo-950 flex items-center justify-center">
@@ -286,6 +288,7 @@ export default async function Home() {
                       src={secondary1.coverImage}
                       alt={secondary1.title}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-103"
+                      decoding="async"
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-brand-800 to-indigo-950 flex items-center justify-center">
@@ -325,6 +328,7 @@ export default async function Home() {
                       src={secondary2.coverImage}
                       alt={secondary2.title}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-103"
+                      decoding="async"
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-brand-800 to-indigo-950 flex items-center justify-center">
@@ -404,6 +408,8 @@ export default async function Home() {
                         src={post.coverImage}
                         alt={post.title}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
+                        loading="lazy"
+                        decoding="async"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
