@@ -124,7 +124,9 @@ exports.Prisma.UserScalarFieldEnum = {
   password: 'password',
   role: 'role',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  resetCode: 'resetCode',
+  resetCodeExpires: 'resetCodeExpires'
 };
 
 exports.Prisma.CategoryScalarFieldEnum = {

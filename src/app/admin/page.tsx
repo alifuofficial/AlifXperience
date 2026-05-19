@@ -29,6 +29,14 @@ interface DBData {
   recentPosts: any[];
   recentUsers: any[];
   activityFeed: any[];
+  postsSpark?: number[];
+  usersSpark?: number[];
+  commentsSpark?: number[];
+  revenueSpark?: number[];
+  postsChange?: { percent: number; trend: "up" | "down"; text: string };
+  usersChange?: { percent: number; trend: "up" | "down"; text: string };
+  commentsChange?: { percent: number; trend: "up" | "down"; text: string };
+  revenueChange?: { percent: number; trend: "up" | "down"; text: string };
 }
 
 interface GAData {
@@ -244,6 +252,10 @@ export default function AdminDashboard() {
             recentPosts: [],
             recentUsers: [],
             activityFeed: [],
+            postsSpark: [0, 0, 0, 0, 0, 0, 0],
+            usersSpark: [0, 0, 0, 0, 0, 0, 0],
+            commentsSpark: [0, 0, 0, 0, 0, 0, 0],
+            revenueSpark: [0, 0, 0, 0, 0, 0, 0],
           });
         }
 
@@ -280,6 +292,10 @@ export default function AdminDashboard() {
           recentPosts: [],
           recentUsers: [],
           activityFeed: [],
+          postsSpark: [0, 0, 0, 0, 0, 0, 0],
+          usersSpark: [0, 0, 0, 0, 0, 0, 0],
+          commentsSpark: [0, 0, 0, 0, 0, 0, 0],
+          revenueSpark: [0, 0, 0, 0, 0, 0, 0],
         });
         setGaData({
           totalViews: 0,
@@ -313,10 +329,10 @@ export default function AdminDashboard() {
     {
       label: isAdmin ? "Total Posts" : "My Posts",
       value: dbData.totalPosts,
-      spark: [10, 15, 20, 22, dbData.totalPosts],
-      change: `+${dbData.recentPosts.length}`,
-      period: "recent",
-      trend: "up",
+      spark: dbData.postsSpark || [10, 15, 20, 22, dbData.totalPosts],
+      change: dbData.postsChange ? dbData.postsChange.text : `+${dbData.recentPosts.length}`,
+      period: dbData.postsChange ? "this week" : "recent",
+      trend: dbData.postsChange ? dbData.postsChange.trend : "up",
       icon: FileText,
       color: "text-blue-600",
       bg: "bg-blue-50",
@@ -324,10 +340,10 @@ export default function AdminDashboard() {
     {
       label: "Registered Users",
       value: dbData.totalUsers,
-      spark: [2, 5, 8, 12, dbData.totalUsers],
-      change: `+${dbData.recentUsers.length}`,
-      period: "recent",
-      trend: "up",
+      spark: dbData.usersSpark || [2, 5, 8, 12, dbData.totalUsers],
+      change: dbData.usersChange ? dbData.usersChange.text : `+${dbData.recentUsers.length}`,
+      period: dbData.usersChange ? "this week" : "recent",
+      trend: dbData.usersChange ? dbData.usersChange.trend : "up",
       icon: Users,
       color: "text-violet-600",
       bg: "bg-violet-50",
@@ -347,10 +363,10 @@ export default function AdminDashboard() {
     {
       label: "Comments",
       value: dbData.totalComments,
-      spark: [5, 12, 10, 18, dbData.totalComments],
-      change: `+${dbData.totalComments}`,
-      period: "all-time",
-      trend: "up",
+      spark: dbData.commentsSpark || [5, 12, 10, 18, dbData.totalComments],
+      change: dbData.commentsChange ? dbData.commentsChange.text : `+${dbData.totalComments}`,
+      period: dbData.commentsChange ? "this week" : "all-time",
+      trend: dbData.commentsChange ? dbData.commentsChange.trend : "up",
       icon: MessageSquare,
       color: "text-amber-600",
       bg: "bg-amber-50",
@@ -358,10 +374,10 @@ export default function AdminDashboard() {
     {
       label: "Ad Revenue",
       value: revenueData?.totalRevenue || 0,
-      spark: [100, 150, 200, revenueData?.totalRevenue || 250],
-      change: `+$${revenueData?.monthRevenue || 0}`,
-      period: "this month",
-      trend: "up",
+      spark: dbData.revenueSpark || [100, 150, 200, revenueData?.totalRevenue || 250],
+      change: dbData.revenueChange ? dbData.revenueChange.text : `+$${revenueData?.monthRevenue || 0}`,
+      period: dbData.revenueChange ? "this week" : "this month",
+      trend: dbData.revenueChange ? dbData.revenueChange.trend : "up",
       icon: DollarSign,
       color: "text-emerald-600",
       bg: "bg-emerald-50",
