@@ -8,8 +8,10 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   // Run a raw query to clean up any legacy roles from previous application deployments
   try {
-    const updatedCount = await prisma.$executeRawUnsafe("UPDATE User SET role = 'USER' WHERE role = 'TENANT'");
-    console.log(`[Seed Clean] Successfully migrated ${updatedCount} legacy TENANT roles to USER.`);
+    const updatedCount = await prisma.$executeRawUnsafe(
+      "UPDATE User SET role = 'USER' WHERE role NOT IN ('USER', 'ADMIN', 'AUTHOR', 'TENANT')"
+    );
+    console.log(`[Seed Clean] Successfully migrated ${updatedCount} legacy roles to USER.`);
   } catch (err) {
     console.error("[Seed Clean] Failed to migrate legacy roles:", err);
   }
