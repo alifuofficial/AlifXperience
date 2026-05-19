@@ -370,7 +370,14 @@ export default async function Home() {
             )}
           </div>
 
-          {latestStories.length === 0 ? (
+          {dbPosts.length > 0 && latestStories.length === 0 ? (
+            <div className="bg-white border border-brand-100 rounded-2xl py-12 flex flex-col items-center justify-center text-center max-w-xl mx-auto shadow-sm shadow-brand-900/5">
+              <BookOpen className="w-8 h-8 text-brand-200 mb-2" />
+              <p className="text-xs text-brand-400 font-medium leading-relaxed px-4">
+                Stay tuned for more stories. Go to the admin panel to publish more posts or import them instantly!
+              </p>
+            </div>
+          ) : latestStories.length === 0 ? (
             <div className="bg-white border border-brand-100 rounded-2xl py-16 flex flex-col items-center justify-center text-center max-w-xl mx-auto shadow-sm shadow-brand-900/5">
               <BookOpen className="w-12 h-12 text-brand-200 mb-4 animate-bounce" />
               <h3 className="text-sm font-bold text-brand-900 uppercase tracking-widest mb-1">Database Sync Complete</h3>
