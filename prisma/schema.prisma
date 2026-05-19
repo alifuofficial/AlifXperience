@@ -68,6 +68,7 @@ enum Role {
   USER
   ADMIN
   AUTHOR
+  TENANT
 }
 
 model Subscriber {

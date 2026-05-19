@@ -7,7 +7,7 @@ import {
   Loader2, X, Check, Eye, EyeOff, UserCircle, FileText, MessageSquare,
 } from "lucide-react";
 
-type Role = "ADMIN" | "USER" | "AUTHOR";
+type Role = "ADMIN" | "USER" | "AUTHOR" | "TENANT";
 interface User {
   id: string;
   name: string | null;

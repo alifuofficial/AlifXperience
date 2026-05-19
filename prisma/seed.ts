@@ -6,6 +6,14 @@ const adapter = new PrismaBetterSqlite3({ url: "dev.db" });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+  // Run a raw query to clean up any legacy roles from previous application deployments
+  try {
+    const updatedCount = await prisma.$executeRawUnsafe("UPDATE User SET role = 'USER' WHERE role = 'TENANT'");
+    console.log(`[Seed Clean] Successfully migrated ${updatedCount} legacy TENANT roles to USER.`);
+  } catch (err) {
+    console.error("[Seed Clean] Failed to migrate legacy roles:", err);
+  }
+
   const hashedPassword = await bcrypt.hash("admin123", 10);
   const admin = await prisma.user.upsert({
     where: { email: "admin@alifx.com" },

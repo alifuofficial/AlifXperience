@@ -71,7 +71,8 @@ export namespace $Enums {
   export const Role: {
   USER: 'USER',
   ADMIN: 'ADMIN',
-  AUTHOR: 'AUTHOR'
+  AUTHOR: 'AUTHOR',
+  TENANT: 'TENANT'
 };
 
 export type Role = (typeof Role)[keyof typeof Role]
@@ -13858,11 +13859,11 @@ export namespace Prisma {
   export type MediaCreateInput = {
     id?: string
     name: string
-    filename: string
+    filename?: string
     url: string
-    mimeType: string
+    mimeType?: string
     size: number
-    storageType: string
+    storageType?: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -13870,11 +13871,11 @@ export namespace Prisma {
   export type MediaUncheckedCreateInput = {
     id?: string
     name: string
-    filename: string
+    filename?: string
     url: string
-    mimeType: string
+    mimeType?: string
     size: number
-    storageType: string
+    storageType?: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -13906,11 +13907,11 @@ export namespace Prisma {
   export type MediaCreateManyInput = {
     id?: string
     name: string
-    filename: string
+    filename?: string
     url: string
-    mimeType: string
+    mimeType?: string
     size: number
-    storageType: string
+    storageType?: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
