@@ -54,10 +54,6 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-import AdPopup from "@/components/AdPopup";
-import InterstitialAd from "@/components/InterstitialAd";
-import GoogleOneTap from "@/components/GoogleOneTap";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -68,12 +64,9 @@ export default function RootLayout({
       <GoogleScripts />
       <body className="font-sans antialiased">
         <Providers>
-          <GoogleOneTap />
           <div className="flex flex-col min-h-screen">
             {children}
           </div>
-          <AdPopup />
-          <InterstitialAd triggerOn="scroll-past" scrollThreshold={60} />
         </Providers>
       </body>
     </html>
