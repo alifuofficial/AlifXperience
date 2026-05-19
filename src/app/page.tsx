@@ -9,6 +9,8 @@ import path from "path";
 import AdSpace from "@/components/AdSpace";
 import NewsletterBanner from "@/components/NewsletterBanner";
 
+export const dynamic = "force-dynamic";
+
 async function readPublicSettings() {
   try {
     const raw = await readFile(path.join(process.cwd(), "data", "settings.json"), "utf-8");
@@ -370,14 +372,7 @@ export default async function Home() {
             )}
           </div>
 
-          {dbPosts.length > 0 && latestStories.length === 0 ? (
-            <div className="bg-white border border-brand-100 rounded-2xl py-12 flex flex-col items-center justify-center text-center max-w-xl mx-auto shadow-sm shadow-brand-900/5">
-              <BookOpen className="w-8 h-8 text-brand-200 mb-2" />
-              <p className="text-xs text-brand-400 font-medium leading-relaxed px-4">
-                Stay tuned for more stories. Go to the admin panel to publish more posts or import them instantly!
-              </p>
-            </div>
-          ) : latestStories.length === 0 ? (
+          {dbPosts.length === 0 ? (
             <div className="bg-white border border-brand-100 rounded-2xl py-16 flex flex-col items-center justify-center text-center max-w-xl mx-auto shadow-sm shadow-brand-900/5">
               <BookOpen className="w-12 h-12 text-brand-200 mb-4 animate-bounce" />
               <h3 className="text-sm font-bold text-brand-900 uppercase tracking-widest mb-1">Database Sync Complete</h3>
@@ -387,6 +382,13 @@ export default async function Home() {
               <Link href="/admin/posts/new" className="mt-5 text-[9px] font-bold uppercase tracking-widest bg-brand-900 hover:bg-accent-600 text-white px-5 py-2.5 rounded transition-all">
                 Write First Article
               </Link>
+            </div>
+          ) : dbPosts.length > 0 && latestStories.length === 0 ? (
+            <div className="bg-white border border-brand-100 rounded-2xl py-12 flex flex-col items-center justify-center text-center max-w-xl mx-auto shadow-sm shadow-brand-900/5">
+              <BookOpen className="w-8 h-8 text-brand-200 mb-2" />
+              <p className="text-xs text-brand-400 font-medium leading-relaxed px-4">
+                Stay tuned for more stories. Go to the admin panel to publish more posts or import them instantly!
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
