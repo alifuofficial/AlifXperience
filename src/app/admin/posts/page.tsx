@@ -4,12 +4,14 @@ import {
   Plus,
   FileText,
   Pencil,
-  Trash2,
   Eye,
   EyeOff,
   Search,
   ArrowUpDown,
 } from "lucide-react";
+import DeletePostButton from "./DeletePostButton";
+
+export const dynamic = "force-dynamic";
 
 async function getPosts() {
   return prisma.post.findMany({
@@ -174,12 +176,7 @@ export default async function AdminPostsPage() {
                     >
                       {post.published ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                     </Link>
-                    <button
-                      className="p-1.5 rounded-lg text-brand-300 hover:text-red-500 hover:bg-red-50 transition-all"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <DeletePostButton postId={post.id} />
                   </div>
                 </div>
               ))}
