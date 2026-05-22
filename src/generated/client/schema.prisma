@@ -14,6 +14,12 @@ model User {
   email            String    @unique
   password         String
   role             Role      @default(USER)
+  bio              String?
+  avatarUrl        String?
+  twitterUrl       String?
+  githubUrl        String?
+  linkedinUrl      String?
+  websiteUrl       String?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   comments         Comment[]

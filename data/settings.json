@@ -3,7 +3,10 @@
   "siteTagline": "The Future of Tech",
   "siteDescription": "A modern technology magazine exploring the cutting edge of AI, software, and hardware.",
   "siteUrl": "https://alifxperience.com",
+  "logoType": "text",
+  "logotext": "AlifXperience",
   "logoUrl": "",
+  "footerBio": "",
   "faviconUrl": "/uploads/1779084702996-rxo3gm.ico",
   "twitterUrl": "",
   "linkedinUrl": "",
@@ -39,6 +42,11 @@
   "ftpPass": "",
   "ftpRemotePath": "/",
   "ftpPublicUrl": "",
+  "advertisePageEnabled": "true",
   "disabledAdSlots": "",
-  "bannerAdEnabled": "true"
+  "bannerAdEnabled": "true",
+  "bannerAdIsOpen": "true",
+  "bannerAdImageUrl": "",
+  "bannerAdLinkUrl": "/advertise",
+  "bannerAdHtmlCode": ""
 }

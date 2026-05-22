@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   Settings, User, Globe, Search, Share2, MessageSquare,
   Bell, Shield, Save, Loader2, Check, AlertTriangle, Eye, EyeOff, ChevronRight, Mail, HardDrive,
-  Megaphone, ImageIcon
+  Megaphone, ImageIcon, Type, Image
 } from "lucide-react";
 import bcrypt from "bcryptjs";
 import MediaSelectorModal from "@/components/MediaSelectorModal";
@@ -120,6 +120,12 @@ export default function SettingsPage() {
   // Profile state
   const [profileName, setProfileName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
+  const [profileBio, setProfileBio] = useState("");
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState("");
+  const [profileTwitter, setProfileTwitter] = useState("");
+  const [profileGithub, setProfileGithub] = useState("");
+  const [profileLinkedin, setProfileLinkedin] = useState("");
+  const [profileWebsite, setProfileWebsite] = useState("");
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
@@ -131,15 +137,30 @@ export default function SettingsPage() {
   const [profileErr, setProfileErr] = useState("");
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [isMediaOpen, setIsMediaOpen] = useState(false);
-  const [mediaTarget, setMediaTarget] = useState<"logoUrl" | "faviconUrl" | null>(null);
+  const [mediaTarget, setMediaTarget] = useState<"logoUrl" | "faviconUrl" | "profileAvatarUrl" | null>(null);
   const [testingFtp, setTestingFtp] = useState(false);
   const [ftpTestResult, setFtpTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   useEffect(() => {
     if (session?.user) {
+      const uid = (session.user as any).id;
       setProfileName((session.user as any).name ?? "");
       setProfileEmail(session.user.email ?? "");
+      fetch(`/api/users/${uid}`)
+        .then((r) => r.ok ? r.json() : null)
+        .then((d) => {
+          if (d) {
+            setProfileBio(d.bio ?? "");
+            setProfileAvatarUrl(d.avatarUrl ?? "");
+            setProfileTwitter(d.twitterUrl ?? "");
+            setProfileGithub(d.githubUrl ?? "");
+            setProfileLinkedin(d.linkedinUrl ?? "");
+            setProfileWebsite(d.websiteUrl ?? "");
+          }
+        })
+        .catch(() => {});
     }
   }, [session]);
 
@@ -240,7 +261,16 @@ export default function SettingsPage() {
     if (newPw && newPw.length < 8) { setProfileErr("Password must be at least 8 characters"); return; }
     setSavingProfile(true);
     try {
-      const payload: any = { name: profileName, email: profileEmail };
+      const payload: any = {
+        name: profileName,
+        email: profileEmail,
+        bio: profileBio,
+        avatarUrl: profileAvatarUrl,
+        twitterUrl: profileTwitter,
+        githubUrl: profileGithub,
+        linkedinUrl: profileLinkedin,
+        websiteUrl: profileWebsite,
+      };
       if (newPw) payload.password = newPw;
       const res = await fetch(`/api/users/${(session?.user as any)?.id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
@@ -294,6 +324,88 @@ export default function SettingsPage() {
               </Field>
             </Section>
 
+            <Section title="Author Bio">
+              <Field label="Bio" hint="A short bio displayed on your articles.">
+                <Textarea value={profileBio} onChange={setProfileBio} placeholder="Writer and editor covering technology, science, and culture." rows={3} />
+              </Field>
+              <Field label="Avatar Image" hint="Upload your profile picture or provide an external URL.">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <div className="flex-1 relative">
+                    <Input value={profileAvatarUrl} onChange={setProfileAvatarUrl} placeholder="E.g. /uploads/avatar.png" />
+                  </div>
+                  <div className="flex-shrink-0 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMediaTarget("profileAvatarUrl");
+                        setIsMediaOpen(true);
+                      }}
+                      className="flex items-center justify-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white bg-brand-900 hover:bg-accent-600 rounded-lg cursor-pointer transition-all"
+                    >
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      <span>Media Library</span>
+                    </button>
+                    <label className="flex items-center justify-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded-lg cursor-pointer transition-all">
+                      {uploadingAvatar ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Uploading...</span>
+                        </>
+                      ) : (
+                        <span>Upload</span>
+                      )}
+                      <input
+                        type="file" accept="image/*" className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setUploadingAvatar(true);
+                          const formData = new FormData();
+                          formData.append("file", file);
+                          fetch("/api/upload", { method: "POST", body: formData })
+                            .then((r) => r.json())
+                            .then((data) => { if (data.url) setProfileAvatarUrl(data.url); })
+                            .catch((err) => alert(err.message))
+                            .finally(() => setUploadingAvatar(false));
+                        }}
+                        disabled={uploadingAvatar}
+                      />
+                    </label>
+                    {profileAvatarUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setProfileAvatarUrl("")}
+                        className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-red-500 hover:text-red-700 hover:bg-red-50 border border-red-100 rounded-lg transition-all"
+                        title="Clear Avatar"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {profileAvatarUrl && (
+                  <div className="mt-2.5 p-3 bg-brand-50/50 border border-brand-100/50 rounded-xl flex items-center justify-center w-16 h-16">
+                    <img src={profileAvatarUrl} alt="Avatar Preview" className="w-12 h-12 rounded-full object-cover" />
+                  </div>
+                )}
+              </Field>
+            </Section>
+
+            <Section title="Social Links">
+              <Field label="Twitter / X URL">
+                <Input value={profileTwitter} onChange={setProfileTwitter} placeholder="https://twitter.com/yourhandle" />
+              </Field>
+              <Field label="GitHub URL">
+                <Input value={profileGithub} onChange={setProfileGithub} placeholder="https://github.com/yourhandle" />
+              </Field>
+              <Field label="LinkedIn URL">
+                <Input value={profileLinkedin} onChange={setProfileLinkedin} placeholder="https://linkedin.com/in/yourprofile" />
+              </Field>
+              <Field label="Website URL">
+                <Input value={profileWebsite} onChange={setProfileWebsite} placeholder="https://yoursite.com" />
+              </Field>
+            </Section>
+
             <Section title="Change Password">
               <Field label="New Password" hint="Minimum 8 characters. Leave blank to keep current password.">
                 <div className="relative">
@@ -340,57 +452,96 @@ export default function SettingsPage() {
             </Section>
 
             <Section title="Appearance">
-              <Field label="Logo Image" hint="Upload your site logo or provide an external URL.">
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                  <div className="flex-1 relative">
-                    <Input value={settings.logoUrl ?? ""} onChange={set("logoUrl")} placeholder="E.g. /uploads/logo.png" />
-                  </div>
-                  <div className="flex-shrink-0 flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMediaTarget("logoUrl");
-                        setIsMediaOpen(true);
-                      }}
-                      className="flex items-center justify-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white bg-brand-900 hover:bg-accent-600 rounded-lg cursor-pointer transition-all"
-                    >
-                      <ImageIcon className="w-3.5 h-3.5" />
-                      <span>Choose from Media</span>
-                    </button>
-                    <label className="flex items-center justify-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded-lg cursor-pointer transition-all">
-                      {uploadingLogo ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span>Uploading...</span>
-                        </>
-                      ) : (
-                        <span>Upload Logo</span>
-                      )}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleUpload(e, "logoUrl", setUploadingLogo)}
-                        disabled={uploadingLogo}
-                      />
-                    </label>
-                    {settings.logoUrl && (
+              <Field label="Logo Type">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { set("logoType")("text"); if (!settings.logotext) set("logotext")(settings.siteName || ""); }}
+                    className={`flex items-center gap-2 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-all ${
+                      (settings.logoType ?? "text") === "text"
+                        ? "bg-brand-900 text-white border-brand-900"
+                        : "bg-brand-50 text-brand-600 border-brand-200 hover:bg-brand-100"
+                    }`}
+                  >
+                    <Type className="w-3.5 h-3.5" />
+                    Text Logo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => set("logoType")("image")}
+                    className={`flex items-center gap-2 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-all ${
+                      settings.logoType === "image"
+                        ? "bg-brand-900 text-white border-brand-900"
+                        : "bg-brand-50 text-brand-600 border-brand-200 hover:bg-brand-100"
+                    }`}
+                  >
+                    <Image className="w-3.5 h-3.5" />
+                    Image Logo
+                  </button>
+                </div>
+              </Field>
+
+              {(settings.logoType ?? "text") === "text" ? (
+                <Field label="Logo Text" hint="The text displayed as your site logo. Leave empty to use the site name.">
+                  <Input value={settings.logotext ?? ""} onChange={set("logotext")} placeholder={settings.siteName || "NEXUS"} />
+                </Field>
+              ) : (
+                <Field label="Logo Image" hint="Upload your site logo or provide an external URL.">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <div className="flex-1 relative">
+                      <Input value={settings.logoUrl ?? ""} onChange={set("logoUrl")} placeholder="E.g. /uploads/logo.png" />
+                    </div>
+                    <div className="flex-shrink-0 flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => set("logoUrl")("")}
-                        className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-red-500 hover:text-red-700 hover:bg-red-50 border border-red-100 rounded-lg transition-all"
-                        title="Clear Logo"
+                        onClick={() => {
+                          setMediaTarget("logoUrl");
+                          setIsMediaOpen(true);
+                        }}
+                        className="flex items-center justify-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white bg-brand-900 hover:bg-accent-600 rounded-lg cursor-pointer transition-all"
                       >
-                        Clear
+                        <ImageIcon className="w-3.5 h-3.5" />
+                        <span>Choose from Media</span>
                       </button>
-                    )}
+                      <label className="flex items-center justify-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded-lg cursor-pointer transition-all">
+                        {uploadingLogo ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Uploading...</span>
+                          </>
+                        ) : (
+                          <span>Upload Logo</span>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleUpload(e, "logoUrl", setUploadingLogo)}
+                          disabled={uploadingLogo}
+                        />
+                      </label>
+                      {settings.logoUrl && (
+                        <button
+                          type="button"
+                          onClick={() => set("logoUrl")("")}
+                          className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-red-500 hover:text-red-700 hover:bg-red-50 border border-red-100 rounded-lg transition-all"
+                          title="Clear Logo"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-                {settings.logoUrl && (
-                  <div className="mt-2.5 p-3 bg-brand-50/50 border border-brand-100/50 rounded-xl flex items-center justify-center max-w-xs">
-                    <img src={settings.logoUrl} alt="Logo Preview" className="max-h-12 object-contain" />
-                  </div>
-                )}
+                  {settings.logoUrl && (
+                    <div className="mt-2.5 p-3 bg-brand-50/50 border border-brand-100/50 rounded-xl flex items-center justify-center max-w-xs">
+                      <img src={settings.logoUrl} alt="Logo Preview" className="max-h-12 object-contain" />
+                    </div>
+                  )}
+                </Field>
+              )}
+
+              <Field label="Footer Bio" hint="A short description shown in the footer next to your logo.">
+                <Textarea value={settings.footerBio ?? ""} onChange={set("footerBio")} placeholder="The future of technology journalism — honest, independent, and always ahead." rows={2} />
               </Field>
 
               <Field label="Favicon Image" hint="Upload .ico or PNG icon file, or specify an external link.">
@@ -1178,7 +1329,11 @@ export default function SettingsPage() {
         }}
         onSelect={(item) => {
           if (mediaTarget) {
-            setSettings((prev) => ({ ...prev, [mediaTarget]: item.url }));
+            if (mediaTarget === "profileAvatarUrl") {
+              setProfileAvatarUrl(item.url);
+            } else {
+              setSettings((prev) => ({ ...prev, [mediaTarget]: item.url }));
+            }
           }
           setIsMediaOpen(false);
           setMediaTarget(null);

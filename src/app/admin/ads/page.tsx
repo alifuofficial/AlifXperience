@@ -91,6 +91,10 @@ export default function AdsDashboard() {
   const [bannerAdIsOpen, setBannerAdIsOpen] = useState(true);
   const [savingFallback, setSavingFallback] = useState(false);
 
+  // Advertise page toggle
+  const [advertisePageEnabled, setAdvertisePageEnabled] = useState(true);
+  const [savingAdvertisePage, setSavingAdvertisePage] = useState(false);
+
   // Campaign Modals / States
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAd, setEditingAd] = useState<Ad | null>(null);
@@ -120,6 +124,8 @@ export default function AdsDashboard() {
   const [pkgPriceUnit, setPkgPriceUnit] = useState("/mo");
   const [pkgFeatures, setPkgFeatures] = useState("");
   const [pkgIsFeatured, setPkgIsFeatured] = useState(false);
+  const [pkgSortOrder, setPkgSortOrder] = useState("0");
+  const [pkgIsActive, setPkgIsActive] = useState(true);
   const [pkgSubmitting, setPkgSubmitting] = useState(false);
 
   useEffect(() => {
@@ -127,6 +133,22 @@ export default function AdsDashboard() {
       fetchData();
     }
   }, [role]);
+
+  // Populate package form fields when editing
+  useEffect(() => {
+    if (editingPackage) {
+      setPkgTitle(editingPackage.title);
+      setPkgDescription(editingPackage.description);
+      setPkgPrice(String(editingPackage.price));
+      setPkgPriceUnit(editingPackage.priceUnit);
+      let features: string[] = [];
+      try { features = JSON.parse(editingPackage.features); } catch {}
+      setPkgFeatures(features.join("\n"));
+      setPkgIsFeatured(editingPackage.isFeatured);
+      setPkgSortOrder(String(editingPackage.sortOrder));
+      setPkgIsActive(editingPackage.isActive);
+    }
+  }, [editingPackage]);
 
   if (sessionStatus === "loading") {
     return (
@@ -202,7 +224,7 @@ export default function AdsDashboard() {
       }
 
       // 5. Fetch settings
-      let settingsData = { disabledAdSlots: "", bannerAdEnabled: "true", bannerAdIsOpen: "true" };
+      let settingsData = { disabledAdSlots: "", bannerAdEnabled: "true", bannerAdIsOpen: "true", advertisePageEnabled: "true" };
       try {
         const res = await fetch("/api/settings");
         if (res.ok) {
@@ -221,6 +243,7 @@ export default function AdsDashboard() {
       setDisabledAdSlots(disabledStr.split(",").map((s: string) => s.trim()).filter(Boolean));
       setBannerAdEnabled(settingsData.bannerAdEnabled === "true");
       setBannerAdIsOpen(settingsData.bannerAdIsOpen === "true");
+      setAdvertisePageEnabled(settingsData.advertisePageEnabled !== "false");
     } catch (err) {
       console.error("Failed to load advertising data sets:", err);
     } finally {
@@ -248,6 +271,23 @@ export default function AdsDashboard() {
       alert(err.message || "Something went wrong while saving settings.");
     } finally {
       setSavingFallback(false);
+    }
+  };
+
+  const handleSaveAdvertisePage = async (enabled: boolean) => {
+    setSavingAdvertisePage(true);
+    try {
+      const response = await fetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ advertisePageEnabled: String(enabled) })
+      });
+      if (!response.ok) throw new Error("Failed to save setting");
+      setAdvertisePageEnabled(enabled);
+    } catch (err: any) {
+      alert(err.message || "Something went wrong while saving.");
+    } finally {
+      setSavingAdvertisePage(false);
     }
   };
 
@@ -442,6 +482,8 @@ export default function AdsDashboard() {
     setPkgPriceUnit("/mo");
     setPkgFeatures("");
     setPkgIsFeatured(false);
+    setPkgSortOrder("0");
+    setPkgIsActive(true);
   };
 
   const handlePackageSubmit = async (e: React.FormEvent) => {
@@ -464,6 +506,8 @@ export default function AdsDashboard() {
           priceUnit: pkgPriceUnit,
           features,
           isFeatured: pkgIsFeatured,
+          sortOrder: parseInt(pkgSortOrder) || 0,
+          isActive: pkgIsActive,
         })
       });
 
@@ -649,6 +693,37 @@ export default function AdsDashboard() {
         </div>
       </div>
 
+      {/* Advertise Page Toggle */}
+      <div className="bg-gradient-to-r from-brand-900 to-indigo-950 rounded-2xl border border-white/10 p-6 text-white shadow-md">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="space-y-1.5 flex-1">
+            <h3 className="text-base font-bold tracking-tight">Public Advertise Page</h3>
+            <p className="text-[11px] text-brand-200/90 leading-relaxed font-medium max-w-2xl">
+              Enable or disable the <code className="text-accent-400 bg-white/10 px-1.5 py-0.5 rounded text-[10px]">/advertise</code> page. When disabled, visitors will see a 404 page.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-4 rounded-xl shrink-0">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-brand-300">Advertise Page:</span>
+            <button
+              onClick={() => handleSaveAdvertisePage(!advertisePageEnabled)}
+              disabled={savingAdvertisePage}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
+                advertisePageEnabled ? "bg-emerald-500" : "bg-white/20"
+              }`}
+            >
+              <span
+                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                  advertisePageEnabled ? "translate-x-4" : "translate-x-1"
+                }`}
+              />
+            </button>
+            <span className={`text-[10px] font-black uppercase ${advertisePageEnabled ? "text-emerald-400" : "text-brand-400"}`}>
+              {advertisePageEnabled ? "ENABLED" : "DISABLED"}
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Ad Slots Overview */}
       <div className="bg-white rounded-2xl border border-brand-100/60 overflow-hidden shadow-sm">
         <div className="px-6 py-4 border-b border-brand-50 flex items-center justify-between bg-brand-50/20">
@@ -775,15 +850,20 @@ export default function AdsDashboard() {
               let features: string[] = [];
               try { features = JSON.parse(pkg.features); } catch { features = []; }
               return (
-                <div key={pkg.id} className={`p-5 rounded-xl border-2 ${pkg.isFeatured ? "border-accent-500 bg-accent-50/30" : "border-brand-100"}`}>
+                <div key={pkg.id} className={`p-5 rounded-xl border-2 ${pkg.isFeatured ? "border-accent-500 bg-accent-50/30" : "border-brand-100"} ${!pkg.isActive ? "opacity-50" : ""}`}>
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <h3 className="text-xs font-black text-brand-900 uppercase">{pkg.title}</h3>
-                      <p className="text-lg font-black text-accent-600 mt-1">${pkg.price}<span className="text-[10px] font-bold text-brand-400">{pkg.priceUnit}</span></p>
+                      <p className="text-lg font-black text-accent-600 mt-1">ETB {pkg.price}<span className="text-[10px] font-bold text-brand-400">{pkg.priceUnit}</span></p>
                     </div>
-                    {pkg.isFeatured && (
-                      <span className="text-[7px] font-black uppercase bg-accent-600 text-white px-2 py-0.5 rounded-full">Featured</span>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {!pkg.isActive && (
+                        <span className="text-[7px] font-black uppercase bg-brand-300 text-white px-2 py-0.5 rounded-full">Inactive</span>
+                      )}
+                      {pkg.isFeatured && (
+                        <span className="text-[7px] font-black uppercase bg-accent-600 text-white px-2 py-0.5 rounded-full">Featured</span>
+                      )}
+                    </div>
                   </div>
                   <p className="text-[10px] text-brand-500 mb-3 line-clamp-2">{pkg.description}</p>
                   <ul className="space-y-1 mb-4">
@@ -1235,8 +1315,8 @@ export default function AdsDashboard() {
             </div>
 
             <form onSubmit={handlePackageSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-2 space-y-1">
                   <label className="text-[7.5px] font-bold text-brand-450 uppercase tracking-widest block">Package Title</label>
                   <input
                     type="text"
@@ -1248,7 +1328,7 @@ export default function AdsDashboard() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[7.5px] font-bold text-brand-450 uppercase tracking-widest block">Price</label>
+                  <label className="text-[7.5px] font-bold text-brand-450 uppercase tracking-widest block">Price (ETB)</label>
                   <input
                     type="number"
                     required
@@ -1272,7 +1352,7 @@ export default function AdsDashboard() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <label className="text-[7.5px] font-bold text-brand-450 uppercase tracking-widest block">Price Unit</label>
                   <select
@@ -1285,6 +1365,17 @@ export default function AdsDashboard() {
                     <option value="/blast">per blast</option>
                   </select>
                 </div>
+                <div className="space-y-1">
+                  <label className="text-[7.5px] font-bold text-brand-450 uppercase tracking-widest block">Sort Order</label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={pkgSortOrder}
+                    onChange={(e) => setPkgSortOrder(e.target.value)}
+                    className="w-full text-[10px] font-bold text-brand-700 bg-white rounded-lg px-3 py-2 border border-brand-100 focus:outline-none focus:ring-2 focus:ring-accent-400/20"
+                  />
+                </div>
                 <div className="flex items-center gap-2 pt-5">
                   <input
                     type="checkbox"
@@ -1293,8 +1384,19 @@ export default function AdsDashboard() {
                     onChange={(e) => setPkgIsFeatured(e.target.checked)}
                     className="w-4 h-4 rounded border-brand-200 text-accent-600 focus:ring-accent-400"
                   />
-                  <label htmlFor="isFeatured" className="text-[10px] font-bold text-brand-700">Mark as Featured</label>
+                  <label htmlFor="isFeatured" className="text-[10px] font-bold text-brand-700">Featured</label>
                 </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  checked={pkgIsActive}
+                  onChange={(e) => setPkgIsActive(e.target.checked)}
+                  className="w-4 h-4 rounded border-brand-200 text-accent-600 focus:ring-accent-400"
+                />
+                <label htmlFor="isActive" className="text-[10px] font-bold text-brand-700">Active (visible on public page)</label>
               </div>
 
               <div className="space-y-1">

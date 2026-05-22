@@ -12,6 +12,13 @@ interface MenuItem {
   children?: MenuItem[];
 }
 
+interface SiteSettings {
+  siteName: string;
+  logoType: string;
+  logotext: string;
+  logoUrl: string;
+}
+
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -31,6 +38,14 @@ export default function Navbar() {
     { id: "7", name: "About Us", href: "/about" }
   ]);
 
+  // Site settings for logo
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>({
+    siteName: "NEXUS",
+    logoType: "text",
+    logotext: "",
+    logoUrl: "",
+  });
+
   // Mobile navigation collapsible expansion state
   const [mobileExpanded, setMobileExpanded] = useState<Record<string, boolean>>({});
 
@@ -45,6 +60,15 @@ export default function Navbar() {
         }
       })
       .catch((err) => console.error("Navbar menu load failure:", err));
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/settings/public")
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data) setSiteSettings(data);
+      })
+      .catch((err) => console.error("Navbar settings load failure:", err));
   }, []);
 
   useEffect(() => {
@@ -78,10 +102,18 @@ export default function Navbar() {
 
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-              <div className="w-7 h-7 bg-accent-600 rounded flex items-center justify-center shadow-sm shadow-accent-600/30">
-                <Zap className="w-3.5 h-3.5 text-white fill-white" />
-              </div>
-              <span className="text-sm font-black tracking-tight text-brand-900 uppercase">NEXUS</span>
+              {(siteSettings.logoType === "image" && siteSettings.logoUrl) ? (
+                <img src={siteSettings.logoUrl} alt={siteSettings.siteName} className="max-h-8 w-auto" />
+              ) : (
+                <>
+                  <div className="w-7 h-7 bg-accent-600 rounded flex items-center justify-center shadow-sm shadow-accent-600/30">
+                    <Zap className="w-3.5 h-3.5 text-white fill-white" />
+                  </div>
+                  <span className="text-sm font-black tracking-tight text-brand-900 uppercase">
+                    {siteSettings.logotext || siteSettings.siteName}
+                  </span>
+                </>
+              )}
             </Link>
 
             {/* Desktop Dynamic Hover Nav with Recursion */}
@@ -197,10 +229,18 @@ export default function Navbar() {
       <div className={`fixed top-0 right-0 h-full w-72 bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}`}>
         <div className="p-5 border-b border-brand-100 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-accent-600 rounded flex items-center justify-center">
-              <Zap className="w-3 h-3 text-white fill-white" />
-            </div>
-            <span className="text-xs font-black tracking-widest text-brand-900 uppercase">NEXUS</span>
+            {(siteSettings.logoType === "image" && siteSettings.logoUrl) ? (
+              <img src={siteSettings.logoUrl} alt={siteSettings.siteName} className="max-h-6 w-auto" />
+            ) : (
+              <>
+                <div className="w-6 h-6 bg-accent-600 rounded flex items-center justify-center">
+                  <Zap className="w-3 h-3 text-white fill-white" />
+                </div>
+                <span className="text-xs font-black tracking-widest text-brand-900 uppercase">
+                  {siteSettings.logotext || siteSettings.siteName}
+                </span>
+              </>
+            )}
           </Link>
           <button onClick={() => setIsMobileMenuOpen(false)} className="p-1.5 text-brand-400 hover:text-brand-900">
             <X className="w-4 h-4" />

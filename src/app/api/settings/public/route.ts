@@ -9,10 +9,13 @@ const PUBLIC_DEFAULTS = {
   siteTagline: "The Future of Tech",
   siteDescription: "A modern technology magazine exploring the cutting edge of AI, software, and hardware.",
   siteUrl: "https://alifxperience.com",
+  logoType: "text",
+  logotext: "",
   logoUrl: "",
   faviconUrl: "",
   allowRegistration: "true",
   maintenanceMode: "false",
+  footerBio: "",
   newsTickerEnabled: "true",
   bannerAdEnabled: "true",
   bannerAdIsOpen: "true",
@@ -20,6 +23,7 @@ const PUBLIC_DEFAULTS = {
   bannerAdLinkUrl: "/advertise",
   bannerAdHtmlCode: "",
   googleClientId: "",
+  advertisePageEnabled: "true",
   disabledAdSlots: "",
 };
 
@@ -34,7 +38,10 @@ async function readSettings() {
       siteTagline: parsed.siteTagline ?? PUBLIC_DEFAULTS.siteTagline,
       siteDescription: parsed.siteDescription ?? PUBLIC_DEFAULTS.siteDescription,
       siteUrl: parsed.siteUrl ?? PUBLIC_DEFAULTS.siteUrl,
+      logoType: parsed.logoType ?? PUBLIC_DEFAULTS.logoType,
+      logotext: parsed.logotext ?? PUBLIC_DEFAULTS.logotext,
       logoUrl: parsed.logoUrl ?? PUBLIC_DEFAULTS.logoUrl,
+      footerBio: parsed.footerBio ?? PUBLIC_DEFAULTS.footerBio,
       faviconUrl: parsed.faviconUrl ?? PUBLIC_DEFAULTS.faviconUrl,
       allowRegistration: parsed.allowRegistration ?? PUBLIC_DEFAULTS.allowRegistration,
       maintenanceMode: parsed.maintenanceMode ?? PUBLIC_DEFAULTS.maintenanceMode,
@@ -45,6 +52,7 @@ async function readSettings() {
       bannerAdLinkUrl: parsed.bannerAdLinkUrl ?? PUBLIC_DEFAULTS.bannerAdLinkUrl,
       bannerAdHtmlCode: parsed.bannerAdHtmlCode ?? PUBLIC_DEFAULTS.bannerAdHtmlCode,
       googleClientId: parsed.googleClientId ?? PUBLIC_DEFAULTS.googleClientId,
+      advertisePageEnabled: parsed.advertisePageEnabled ?? PUBLIC_DEFAULTS.advertisePageEnabled,
       disabledAdSlots: parsed.disabledAdSlots ?? PUBLIC_DEFAULTS.disabledAdSlots,
     };
   } catch {

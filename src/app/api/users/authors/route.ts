@@ -23,6 +23,12 @@ export async function GET() {
         name: true,
         email: true,
         role: true,
+        bio: true,
+        avatarUrl: true,
+        twitterUrl: true,
+        githubUrl: true,
+        linkedinUrl: true,
+        websiteUrl: true,
       },
       orderBy: {
         name: "asc",

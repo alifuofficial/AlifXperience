@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Ticker from "@/components/Ticker";
 import Footer from "@/components/Footer";
@@ -53,6 +54,7 @@ async function getPackages() {
 
 export default async function AdvertisePage() {
   const settings = await readPublicSettings();
+  if (settings.advertisePageEnabled !== "true") notFound();
   const siteName = settings.siteName || "AlifXperience";
   const contactEmail = settings.smtpUser || "advertise@alifxperience.com";
   const packages = await getPackages();
@@ -247,7 +249,7 @@ export default async function AdvertisePage() {
                 description: "High-impact banner placements across desktop and mobile with smart targeting.",
                 features: ["Sidebar leaderboards", "In-article rectangles", "Sticky mobile banners", "Retargeting ready"],
                 icon: Globe,
-                cta: "From $199/mo",
+                cta: "From ETB 199/mo",
                 isFeatured: false
               },
               {
@@ -255,7 +257,7 @@ export default async function AdvertisePage() {
                 description: "Native editorial pieces that integrate seamlessly with our content flow.",
                 features: ["Dedicated review articles", "Permanent backlinks", "Social syndication", "Newsletter feature"],
                 icon: Sparkles,
-                cta: "From $499/article",
+                cta: "From ETB 499/article",
                 isFeatured: true
               },
               {
@@ -263,7 +265,7 @@ export default async function AdvertisePage() {
                 description: "Direct access to our engaged developer and tech professional subscriber base.",
                 features: ["Top-of-email placement", "Click tracking included", "A/B subject testing", "Detailed analytics"],
                 icon: Mail,
-                cta: "From $299/blast",
+                cta: "From ETB 299/blast",
                 isFeatured: false
               },
             ]).map((format: any, idx: number) => (
@@ -297,7 +299,7 @@ export default async function AdvertisePage() {
                 </ul>
                 <div className="pt-4 border-t border-brand-100">
                   <span className={`text-sm font-bold ${format.isFeatured ? "text-accent-600" : "text-brand-700"}`}>
-                    {format.price ? `From $${format.price}${format.priceUnit || "/mo"}` : format.cta}
+                    {format.price ? `From ETB ${format.price}${format.priceUnit || "/mo"}` : format.cta}
                   </span>
                 </div>
               </div>

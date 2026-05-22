@@ -33,7 +33,7 @@ async function getPost(slug: string) {
   return prisma.post.findFirst({
     where: { slug, published: true },
     include: {
-      author: { select: { name: true, email: true } },
+      author: { select: { name: true, email: true, bio: true, avatarUrl: true, twitterUrl: true, githubUrl: true, linkedinUrl: true, websiteUrl: true } },
       category: { select: { id: true, name: true, slug: true } },
       comments: {
         orderBy: { createdAt: "desc" },
@@ -241,22 +241,26 @@ export default async function PostPage({ params }: Props) {
   const mins = readTime(post.content);
 
   // Load co-authors
-  let coAuthorsList: Array<{ id: string; name: string | null; email: string }> = [];
+  let coAuthorsList: Array<{
+    id: string; name: string | null; email: string;
+    bio: string | null; avatarUrl: string | null;
+    twitterUrl: string | null; githubUrl: string | null; linkedinUrl: string | null; websiteUrl: string | null;
+  }> = [];
   if (post.coAuthorsJson) {
     try {
       const coAuthorIds = JSON.parse(post.coAuthorsJson);
       if (Array.isArray(coAuthorIds) && coAuthorIds.length > 0) {
         coAuthorsList = await prisma.user.findMany({
           where: { id: { in: coAuthorIds } },
-          select: { id: true, name: true, email: true },
+          select: { id: true, name: true, email: true, bio: true, avatarUrl: true, twitterUrl: true, githubUrl: true, linkedinUrl: true, websiteUrl: true },
         });
       }
     } catch {}
   }
 
   const allAuthors = [
-    { name: post.author.name ?? "AlifX Staff", email: post.author.email ?? "" },
-    ...coAuthorsList.map((a) => ({ name: a.name ?? a.email, email: a.email })),
+    { name: post.author.name ?? "AlifX Staff", email: post.author.email ?? "", bio: post.author.bio, avatarUrl: post.author.avatarUrl, twitterUrl: post.author.twitterUrl, githubUrl: post.author.githubUrl, linkedinUrl: post.author.linkedinUrl, websiteUrl: post.author.websiteUrl },
+    ...coAuthorsList.map((a) => ({ name: a.name ?? a.email, email: a.email, bio: a.bio, avatarUrl: a.avatarUrl, twitterUrl: a.twitterUrl, githubUrl: a.githubUrl, linkedinUrl: a.linkedinUrl, websiteUrl: a.websiteUrl })),
   ];
   const authorsText = allAuthors.map((a) => a.name).join(" & ");
 
@@ -287,6 +291,7 @@ export default async function PostPage({ params }: Props) {
     "author": allAuthors.map(auth => ({
       "@type": "Person",
       "name": auth.name,
+      ...(auth.bio ? { "description": auth.bio } : {}),
       "jobTitle": "Tech Journalist"
     })),
     "publisher": {
@@ -343,10 +348,14 @@ export default async function PostPage({ params }: Props) {
                   {allAuthors.map((auth, index) => (
                     <div
                       key={index}
-                      className="w-9 h-9 rounded-full border-2 border-white bg-gradient-to-br from-accent-400 to-indigo-500 flex items-center justify-center shadow-sm relative z-[2] first:z-[3]"
+                      className="w-9 h-9 rounded-full border-2 border-white bg-gradient-to-br from-accent-400 to-indigo-500 flex items-center justify-center shadow-sm relative z-[2] first:z-[3] overflow-hidden"
                       title={auth.name}
                     >
-                      <User className="w-4 h-4 text-white" />
+                      {auth.avatarUrl ? (
+                        <img src={auth.avatarUrl} alt={auth.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-4 h-4 text-white" />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -472,19 +481,49 @@ export default async function PostPage({ params }: Props) {
                 {allAuthors.length > 1 ? "Written by Contributors" : "Written by"}
               </p>
               {allAuthors.map((auth, idx) => (
-                <div key={idx} className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-400 to-indigo-500 flex-shrink-0 flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
+                <div key={idx} className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-400 to-indigo-500 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                      {auth.avatarUrl ? (
+                        <img src={auth.avatarUrl} alt={auth.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-4 h-4 text-white" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-bold text-brand-900 text-xs">{auth.name}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-bold text-brand-900 text-xs">{auth.name}</p>
-                    <p className="text-[8px] text-brand-400 font-medium mt-0.5">Contributor at NEXUS</p>
-                  </div>
+                  {auth.bio && (
+                    <p className="text-xs text-brand-500 leading-relaxed">{auth.bio}</p>
+                  )}
+                  {(auth.twitterUrl || auth.githubUrl || auth.linkedinUrl || auth.websiteUrl) && (
+                    <div className="flex items-center gap-2 pt-1">
+                      {auth.twitterUrl && (
+                        <a href={auth.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:text-accent-600 transition-colors" title="Twitter / X">
+                          <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L2.252 2.25H8.08l4.264 5.633L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                        </a>
+                      )}
+                      {auth.githubUrl && (
+                        <a href={auth.githubUrl} target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:text-accent-600 transition-colors" title="GitHub">
+                          <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+                        </a>
+                      )}
+                      {auth.linkedinUrl && (
+                        <a href={auth.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:text-accent-600 transition-colors" title="LinkedIn">
+                          <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                        </a>
+                      )}
+                      {auth.websiteUrl && (
+                        <a href={auth.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:text-accent-600 transition-colors" title="Website">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                        </a>
+                      )}
+                    </div>
+                  )}
+                  {idx < allAuthors.length - 1 && <div className="border-t border-brand-50" />}
                 </div>
               ))}
-              <p className="text-xs text-brand-400 leading-relaxed pt-2 border-t border-brand-50">
-                Covering the intersection of technology, culture, and the future since 2024.
-              </p>
             </div>
 
             {/* Follow Us — fills the bottom gap */}

@@ -52,11 +52,28 @@ const socials = [
   { icon: YoutubeIcon, label: "YouTube", href: "#" },
 ];
 
+interface SiteSettings {
+  siteName: string;
+  logoType: string;
+  logotext: string;
+  logoUrl: string;
+  footerBio: string;
+}
+
 export default function Footer() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
   const [isSuccess, setIsSuccess] = useState(true);
+
+  // Site settings for logo & footer bio
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>({
+    siteName: "NEXUS",
+    logoType: "text",
+    logotext: "",
+    logoUrl: "",
+    footerBio: "",
+  });
 
   // Dynamic Footer Topics loaded from the API
   const [topics, setTopics] = useState<MenuItem[]>([
@@ -67,6 +84,15 @@ export default function Footer() {
     { id: "f5", name: "Software", href: "/category/software" },
     { id: "f6", name: "Reviews", href: "/category/software" }
   ]);
+
+  useEffect(() => {
+    fetch("/api/settings/public")
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data) setSiteSettings(data);
+      })
+      .catch((err) => console.error("Footer settings load failure:", err));
+  }, []);
 
   useEffect(() => {
     fetch("/api/menus?location=footer")
@@ -167,13 +193,21 @@ export default function Footer() {
           {/* Brand */}
           <div className="col-span-2 lg:col-span-1 space-y-6">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-accent-600 rounded-lg flex items-center justify-center shadow-lg shadow-accent-600/30">
-                <Zap className="w-4 h-4 text-white fill-white" />
-              </div>
-              <span className="text-sm font-black tracking-widest uppercase">NEXUS</span>
+              {(siteSettings.logoType === "image" && siteSettings.logoUrl) ? (
+                <img src={siteSettings.logoUrl} alt={siteSettings.siteName} className="max-h-10 w-auto" />
+              ) : (
+                <>
+                  <div className="w-8 h-8 bg-accent-600 rounded-lg flex items-center justify-center shadow-lg shadow-accent-600/30">
+                    <Zap className="w-4 h-4 text-white fill-white" />
+                  </div>
+                  <span className="text-sm font-black tracking-widest uppercase">
+                    {siteSettings.logotext || siteSettings.siteName}
+                  </span>
+                </>
+              )}
             </Link>
             <p className="text-brand-400 text-sm leading-relaxed max-w-xs">
-              The future of technology journalism — honest, independent, and always ahead.
+              {siteSettings.footerBio || "The future of technology journalism — honest, independent, and always ahead."}
             </p>
             <div className="flex items-center gap-3">
               {socials.map((s) => (

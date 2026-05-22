@@ -1821,6 +1821,12 @@ export namespace Prisma {
     email: string | null
     password: string | null
     role: $Enums.Role | null
+    bio: string | null
+    avatarUrl: string | null
+    twitterUrl: string | null
+    githubUrl: string | null
+    linkedinUrl: string | null
+    websiteUrl: string | null
     createdAt: Date | null
     updatedAt: Date | null
     resetCode: string | null
@@ -1833,6 +1839,12 @@ export namespace Prisma {
     email: string | null
     password: string | null
     role: $Enums.Role | null
+    bio: string | null
+    avatarUrl: string | null
+    twitterUrl: string | null
+    githubUrl: string | null
+    linkedinUrl: string | null
+    websiteUrl: string | null
     createdAt: Date | null
     updatedAt: Date | null
     resetCode: string | null
@@ -1845,6 +1857,12 @@ export namespace Prisma {
     email: number
     password: number
     role: number
+    bio: number
+    avatarUrl: number
+    twitterUrl: number
+    githubUrl: number
+    linkedinUrl: number
+    websiteUrl: number
     createdAt: number
     updatedAt: number
     resetCode: number
@@ -1859,6 +1877,12 @@ export namespace Prisma {
     email?: true
     password?: true
     role?: true
+    bio?: true
+    avatarUrl?: true
+    twitterUrl?: true
+    githubUrl?: true
+    linkedinUrl?: true
+    websiteUrl?: true
     createdAt?: true
     updatedAt?: true
     resetCode?: true
@@ -1871,6 +1895,12 @@ export namespace Prisma {
     email?: true
     password?: true
     role?: true
+    bio?: true
+    avatarUrl?: true
+    twitterUrl?: true
+    githubUrl?: true
+    linkedinUrl?: true
+    websiteUrl?: true
     createdAt?: true
     updatedAt?: true
     resetCode?: true
@@ -1883,6 +1913,12 @@ export namespace Prisma {
     email?: true
     password?: true
     role?: true
+    bio?: true
+    avatarUrl?: true
+    twitterUrl?: true
+    githubUrl?: true
+    linkedinUrl?: true
+    websiteUrl?: true
     createdAt?: true
     updatedAt?: true
     resetCode?: true
@@ -1968,6 +2004,12 @@ export namespace Prisma {
     email: string
     password: string
     role: $Enums.Role
+    bio: string | null
+    avatarUrl: string | null
+    twitterUrl: string | null
+    githubUrl: string | null
+    linkedinUrl: string | null
+    websiteUrl: string | null
     createdAt: Date
     updatedAt: Date
     resetCode: string | null
@@ -1997,6 +2039,12 @@ export namespace Prisma {
     email?: boolean
     password?: boolean
     role?: boolean
+    bio?: boolean
+    avatarUrl?: boolean
+    twitterUrl?: boolean
+    githubUrl?: boolean
+    linkedinUrl?: boolean
+    websiteUrl?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     resetCode?: boolean
@@ -2012,6 +2060,12 @@ export namespace Prisma {
     email?: boolean
     password?: boolean
     role?: boolean
+    bio?: boolean
+    avatarUrl?: boolean
+    twitterUrl?: boolean
+    githubUrl?: boolean
+    linkedinUrl?: boolean
+    websiteUrl?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     resetCode?: boolean
@@ -2024,6 +2078,12 @@ export namespace Prisma {
     email?: boolean
     password?: boolean
     role?: boolean
+    bio?: boolean
+    avatarUrl?: boolean
+    twitterUrl?: boolean
+    githubUrl?: boolean
+    linkedinUrl?: boolean
+    websiteUrl?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     resetCode?: boolean
@@ -2036,13 +2096,19 @@ export namespace Prisma {
     email?: boolean
     password?: boolean
     role?: boolean
+    bio?: boolean
+    avatarUrl?: boolean
+    twitterUrl?: boolean
+    githubUrl?: boolean
+    linkedinUrl?: boolean
+    websiteUrl?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     resetCode?: boolean
     resetCodeExpires?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "password" | "role" | "createdAt" | "updatedAt" | "resetCode" | "resetCodeExpires", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "password" | "role" | "bio" | "avatarUrl" | "twitterUrl" | "githubUrl" | "linkedinUrl" | "websiteUrl" | "createdAt" | "updatedAt" | "resetCode" | "resetCodeExpires", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     comments?: boolean | User$commentsArgs<ExtArgs>
     posts?: boolean | User$postsArgs<ExtArgs>
@@ -2063,6 +2129,12 @@ export namespace Prisma {
       email: string
       password: string
       role: $Enums.Role
+      bio: string | null
+      avatarUrl: string | null
+      twitterUrl: string | null
+      githubUrl: string | null
+      linkedinUrl: string | null
+      websiteUrl: string | null
       createdAt: Date
       updatedAt: Date
       resetCode: string | null
@@ -2497,6 +2569,12 @@ export namespace Prisma {
     readonly email: FieldRef<"User", 'String'>
     readonly password: FieldRef<"User", 'String'>
     readonly role: FieldRef<"User", 'Role'>
+    readonly bio: FieldRef<"User", 'String'>
+    readonly avatarUrl: FieldRef<"User", 'String'>
+    readonly twitterUrl: FieldRef<"User", 'String'>
+    readonly githubUrl: FieldRef<"User", 'String'>
+    readonly linkedinUrl: FieldRef<"User", 'String'>
+    readonly websiteUrl: FieldRef<"User", 'String'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
     readonly updatedAt: FieldRef<"User", 'DateTime'>
     readonly resetCode: FieldRef<"User", 'String'>
@@ -12681,6 +12759,12 @@ export namespace Prisma {
     email: 'email',
     password: 'password',
     role: 'role',
+    bio: 'bio',
+    avatarUrl: 'avatarUrl',
+    twitterUrl: 'twitterUrl',
+    githubUrl: 'githubUrl',
+    linkedinUrl: 'linkedinUrl',
+    websiteUrl: 'websiteUrl',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     resetCode: 'resetCode',
@@ -12887,6 +12971,12 @@ export namespace Prisma {
     email?: StringFilter<"User"> | string
     password?: StringFilter<"User"> | string
     role?: EnumRoleFilter<"User"> | $Enums.Role
+    bio?: StringNullableFilter<"User"> | string | null
+    avatarUrl?: StringNullableFilter<"User"> | string | null
+    twitterUrl?: StringNullableFilter<"User"> | string | null
+    githubUrl?: StringNullableFilter<"User"> | string | null
+    linkedinUrl?: StringNullableFilter<"User"> | string | null
+    websiteUrl?: StringNullableFilter<"User"> | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     resetCode?: StringNullableFilter<"User"> | string | null
@@ -12901,6 +12991,12 @@ export namespace Prisma {
     email?: SortOrder
     password?: SortOrder
     role?: SortOrder
+    bio?: SortOrderInput | SortOrder
+    avatarUrl?: SortOrderInput | SortOrder
+    twitterUrl?: SortOrderInput | SortOrder
+    githubUrl?: SortOrderInput | SortOrder
+    linkedinUrl?: SortOrderInput | SortOrder
+    websiteUrl?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     resetCode?: SortOrderInput | SortOrder
@@ -12918,6 +13014,12 @@ export namespace Prisma {
     name?: StringNullableFilter<"User"> | string | null
     password?: StringFilter<"User"> | string
     role?: EnumRoleFilter<"User"> | $Enums.Role
+    bio?: StringNullableFilter<"User"> | string | null
+    avatarUrl?: StringNullableFilter<"User"> | string | null
+    twitterUrl?: StringNullableFilter<"User"> | string | null
+    githubUrl?: StringNullableFilter<"User"> | string | null
+    linkedinUrl?: StringNullableFilter<"User"> | string | null
+    websiteUrl?: StringNullableFilter<"User"> | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     resetCode?: StringNullableFilter<"User"> | string | null
@@ -12932,6 +13034,12 @@ export namespace Prisma {
     email?: SortOrder
     password?: SortOrder
     role?: SortOrder
+    bio?: SortOrderInput | SortOrder
+    avatarUrl?: SortOrderInput | SortOrder
+    twitterUrl?: SortOrderInput | SortOrder
+    githubUrl?: SortOrderInput | SortOrder
+    linkedinUrl?: SortOrderInput | SortOrder
+    websiteUrl?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     resetCode?: SortOrderInput | SortOrder
@@ -12950,6 +13058,12 @@ export namespace Prisma {
     email?: StringWithAggregatesFilter<"User"> | string
     password?: StringWithAggregatesFilter<"User"> | string
     role?: EnumRoleWithAggregatesFilter<"User"> | $Enums.Role
+    bio?: StringNullableWithAggregatesFilter<"User"> | string | null
+    avatarUrl?: StringNullableWithAggregatesFilter<"User"> | string | null
+    twitterUrl?: StringNullableWithAggregatesFilter<"User"> | string | null
+    githubUrl?: StringNullableWithAggregatesFilter<"User"> | string | null
+    linkedinUrl?: StringNullableWithAggregatesFilter<"User"> | string | null
+    websiteUrl?: StringNullableWithAggregatesFilter<"User"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     resetCode?: StringNullableWithAggregatesFilter<"User"> | string | null
@@ -13573,6 +13687,12 @@ export namespace Prisma {
     email: string
     password: string
     role?: $Enums.Role
+    bio?: string | null
+    avatarUrl?: string | null
+    twitterUrl?: string | null
+    githubUrl?: string | null
+    linkedinUrl?: string | null
+    websiteUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     resetCode?: string | null
@@ -13587,6 +13707,12 @@ export namespace Prisma {
     email: string
     password: string
     role?: $Enums.Role
+    bio?: string | null
+    avatarUrl?: string | null
+    twitterUrl?: string | null
+    githubUrl?: string | null
+    linkedinUrl?: string | null
+    websiteUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     resetCode?: string | null
@@ -13601,6 +13727,12 @@ export namespace Prisma {
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    twitterUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    githubUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    linkedinUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    websiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -13615,6 +13747,12 @@ export namespace Prisma {
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    twitterUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    githubUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    linkedinUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    websiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -13629,6 +13767,12 @@ export namespace Prisma {
     email: string
     password: string
     role?: $Enums.Role
+    bio?: string | null
+    avatarUrl?: string | null
+    twitterUrl?: string | null
+    githubUrl?: string | null
+    linkedinUrl?: string | null
+    websiteUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     resetCode?: string | null
@@ -13641,6 +13785,12 @@ export namespace Prisma {
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    twitterUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    githubUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    linkedinUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    websiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -13653,6 +13803,12 @@ export namespace Prisma {
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    twitterUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    githubUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    linkedinUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    websiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14416,6 +14572,12 @@ export namespace Prisma {
     email?: SortOrder
     password?: SortOrder
     role?: SortOrder
+    bio?: SortOrder
+    avatarUrl?: SortOrder
+    twitterUrl?: SortOrder
+    githubUrl?: SortOrder
+    linkedinUrl?: SortOrder
+    websiteUrl?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     resetCode?: SortOrder
@@ -14428,6 +14590,12 @@ export namespace Prisma {
     email?: SortOrder
     password?: SortOrder
     role?: SortOrder
+    bio?: SortOrder
+    avatarUrl?: SortOrder
+    twitterUrl?: SortOrder
+    githubUrl?: SortOrder
+    linkedinUrl?: SortOrder
+    websiteUrl?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     resetCode?: SortOrder
@@ -14440,6 +14608,12 @@ export namespace Prisma {
     email?: SortOrder
     password?: SortOrder
     role?: SortOrder
+    bio?: SortOrder
+    avatarUrl?: SortOrder
+    twitterUrl?: SortOrder
+    githubUrl?: SortOrder
+    linkedinUrl?: SortOrder
+    websiteUrl?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     resetCode?: SortOrder
@@ -15686,6 +15860,12 @@ export namespace Prisma {
     email: string
     password: string
     role?: $Enums.Role
+    bio?: string | null
+    avatarUrl?: string | null
+    twitterUrl?: string | null
+    githubUrl?: string | null
+    linkedinUrl?: string | null
+    websiteUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     resetCode?: string | null
@@ -15699,6 +15879,12 @@ export namespace Prisma {
     email: string
     password: string
     role?: $Enums.Role
+    bio?: string | null
+    avatarUrl?: string | null
+    twitterUrl?: string | null
+    githubUrl?: string | null
+    linkedinUrl?: string | null
+    websiteUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     resetCode?: string | null
@@ -15767,6 +15953,12 @@ export namespace Prisma {
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    twitterUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    githubUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    linkedinUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    websiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -15780,6 +15972,12 @@ export namespace Prisma {
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    twitterUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    githubUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    linkedinUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    websiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -15793,6 +15991,12 @@ export namespace Prisma {
     email: string
     password: string
     role?: $Enums.Role
+    bio?: string | null
+    avatarUrl?: string | null
+    twitterUrl?: string | null
+    githubUrl?: string | null
+    linkedinUrl?: string | null
+    websiteUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     resetCode?: string | null
@@ -15806,6 +16010,12 @@ export namespace Prisma {
     email: string
     password: string
     role?: $Enums.Role
+    bio?: string | null
+    avatarUrl?: string | null
+    twitterUrl?: string | null
+    githubUrl?: string | null
+    linkedinUrl?: string | null
+    websiteUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     resetCode?: string | null
@@ -15870,6 +16080,12 @@ export namespace Prisma {
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    twitterUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    githubUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    linkedinUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    websiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetCode?: NullableStringFieldUpdateOperationsInput | string | null
@@ -15883,6 +16099,12 @@ export namespace Prisma {
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    bio?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    twitterUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    githubUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    linkedinUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    websiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetCode?: NullableStringFieldUpdateOperationsInput | string | null
