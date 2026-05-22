@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import Ticker from "@/components/Ticker";
 import Footer from "@/components/Footer";
+import NewsletterPopup from "@/components/NewsletterPopup";
 import { ShareButtons, CommentBox, NewsletterSidebar } from "@/components/PostClientComponents";
 import Link from "next/link";
 import AdSpace from "@/components/AdSpace";
@@ -564,6 +565,7 @@ export default async function PostPage({ params }: Props) {
         </div>
       </div>
 
+      <NewsletterPopup />
       <Footer />
     </div>
   );

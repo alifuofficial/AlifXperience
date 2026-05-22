@@ -13,12 +13,15 @@ import {
   ArrowRight,
   Plus,
   Pencil,
-  Trash2,
   Loader2,
   Settings as SettingsIcon,
   AlertCircle,
   CheckCircle,
   DollarSign,
+  Sparkles,
+  Zap,
+  Activity,
+  BarChart3,
 } from "lucide-react";
 
 interface DBData {
@@ -54,151 +57,14 @@ interface RevenueData {
   monthRevenue: number;
 }
 
-// ─── Inline SVG Area Chart ─────────────────────────────────────────────────────
-function AreaChart({ weeklyData, weekLabels }: { weeklyData: number[]; weekLabels: string[] }) {
-  const max = Math.max(...weeklyData, 1);
-  const w = 500;
-  const h = 120;
-  const pad = { t: 10, b: 24, l: 15, r: 15 };
+const COLORS = ["#2563eb", "#7c3aed", "#059669", "#d97706", "#6366f1"];
 
-  const pts = weeklyData.map((v, i) => {
-    const x = pad.l + (i / (weeklyData.length - 1 || 1)) * (w - pad.l - pad.r);
-    const y = pad.t + ((max - v) / max) * (h - pad.t - pad.b);
-    return [x, y];
-  });
-
-  const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0]},${p[1]}`).join(" ");
-  const areaPath = `${linePath} L${pts[pts.length - 1][0]},${h - pad.b} L${pts[0][0]},${h - pad.b} Z`;
-
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-full" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#4f46e5" stopOpacity="0.1" />
-          <stop offset="100%" stopColor="#4f46e5" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={areaPath} fill="url(#areaGrad)" />
-      <path d={linePath} fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      {pts.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="3.5" fill="white" stroke="#4f46e5" strokeWidth="2" />
-      ))}
-      {weekLabels.map((label, i) => {
-        const x = pad.l + (i / (weekLabels.length - 1 || 1)) * (w - pad.l - pad.r);
-        return (
-          <text key={i} x={x} y={h - 4} textAnchor="middle" fontSize="10" fill="#64748b" fontFamily="Inter, sans-serif" fontWeight="500">
-            {label}
-          </text>
-        );
-      })}
-    </svg>
-  );
-}
-
-// ─── Inline SVG Donut Chart ────────────────────────────────────────────────────
-const COLORS = ["#4f46e5", "#8b5cf6", "#10b981", "#f59e0b", "#64748b"];
-
-function DonutChart({ categories }: { categories: { label: string; value: number }[] }) {
-  const total = categories.reduce((s, c) => s + c.value, 0);
-  let cumulative = 0;
-  const r = 52;
-  const cx = 64;
-  const cy = 64;
-  const circumference = 2 * Math.PI * r;
-
-  const displayCategories = categories.length > 0 
-    ? categories 
-    : [{ label: "No Posts", value: 100 }];
-
-  return (
-    <div className="flex items-center gap-6">
-      <svg width="128" height="128" viewBox="0 0 128 128" className="flex-shrink-0">
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f1f5f9" strokeWidth="14" />
-        {categories.map((cat, i) => {
-          const pct = cat.value / (total || 1);
-          const offset = circumference * (1 - cumulative / (total || 1));
-          const dash = circumference * pct;
-          const segment = (
-            <circle
-              key={i}
-              cx={cx}
-              cy={cy}
-              r={r}
-              fill="none"
-              stroke={COLORS[i % COLORS.length]}
-              strokeWidth="14"
-              strokeDasharray={`${dash} ${circumference - dash}`}
-              strokeDashoffset={offset}
-              transform={`rotate(-90 ${cx} ${cy})`}
-              strokeLinecap="round"
-            />
-          );
-          cumulative += cat.value;
-          return segment;
-        })}
-        <text x={cx} y={cy - 2} textAnchor="middle" fontSize="16" fontWeight="600" fill="#0f172a" fontFamily="Inter, sans-serif">
-          {categories.length}
-        </text>
-        <text x={cx} y={cy + 10} textAnchor="middle" fontSize="8" fontWeight="500" fill="#64748b" fontFamily="Inter, sans-serif" letterSpacing="1">
-          TOP TOPICS
-        </text>
-      </svg>
-      <div className="space-y-2 flex-1">
-        {displayCategories.map((cat, i) => (
-          <div key={cat.label} className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: categories.length > 0 ? COLORS[i % COLORS.length] : "#e2e8f0" }} />
-            <span className="text-xs font-medium text-slate-600 truncate max-w-[120px]">{cat.label}</span>
-            <span className="ml-auto text-xs font-semibold text-slate-900">{cat.value}%</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── Mini Sparkline ────────────────────────────────────────────────────────────
-function Sparkline({ data, color }: { data: number[]; color: string }) {
-  const max = Math.max(...data, 1);
-  const min = Math.min(...data, 0);
-  const w = 60;
-  const h = 24;
-  const pts = data.map((v, i) => {
-    const x = (i / (data.length - 1 || 1)) * w;
-    const y = h - ((v - min) / (max - min || 1)) * h;
-    return `${x},${y}`;
-  });
-  return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
-      <polyline points={pts.join(" ")} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-// ─── Status Badge ──────────────────────────────────────────────────────────────
-function StatusBadge({ status }: { status: boolean }) {
-  return status ? (
-    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-100">
-      Published
-    </span>
-  ) : (
-    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium tracking-wide bg-slate-50 text-slate-500 border border-slate-100">
-      Draft
-    </span>
-  );
-}
-
-// Helper to format large numbers
 function formatNumber(num: number): string {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + "M";
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + "k";
-  }
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+  if (num >= 1000) return (num / 1000).toFixed(1) + "k";
   return num.toString();
 }
 
-// Helper to calculate time ago from string
 function timeAgo(dateString: string): string {
   try {
     const date = new Date(dateString);
@@ -219,7 +85,126 @@ function timeAgo(dateString: string): string {
   }
 }
 
-// ─── Main Dashboard ────────────────────────────────────────────────────────────
+function Sparkline({ data, color }: { data: number[]; color: string }) {
+  const max = Math.max(...data, 1);
+  const min = Math.min(...data, 0);
+  const w = 64;
+  const h = 28;
+  const pts = data.map((v, i) => {
+    const x = (i / (data.length - 1 || 1)) * w;
+    const y = h - ((v - min) / (max - min || 1)) * h;
+    return `${x},${y}`;
+  });
+  const poly = pts.join(" ");
+  const area = `${poly} L${w},${h} L0,${h} Z`;
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+      <defs>
+        <linearGradient id={`spark-${color.replace("#", "")}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.2" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#spark-${color.replace("#", "")})`} />
+      <polyline points={poly} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function AreaChart({ weeklyData, weekLabels }: { weeklyData: number[]; weekLabels: string[] }) {
+  const max = Math.max(...weeklyData, 1);
+  const w = 500;
+  const h = 130;
+  const pad = { t: 10, b: 28, l: 15, r: 15 };
+
+  const pts = weeklyData.map((v, i) => {
+    const x = pad.l + (i / (weeklyData.length - 1 || 1)) * (w - pad.l - pad.r);
+    const y = pad.t + ((max - v) / max) * (h - pad.t - pad.b);
+    return [x, y];
+  });
+
+  const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0]},${p[1]}`).join(" ");
+  const areaPath = `${linePath} L${pts[pts.length - 1][0]},${h - pad.b} L${pts[0][0]},${h - pad.b} Z`;
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-full" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#2563eb" stopOpacity="0.12" />
+          <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={areaPath} fill="url(#areaGrad)" />
+      <path d={linePath} fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      {pts.map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r="3" fill="white" stroke="#2563eb" strokeWidth="2" />
+      ))}
+      {weekLabels.map((label, i) => {
+        const x = pad.l + (i / (weekLabels.length - 1 || 1)) * (w - pad.l - pad.r);
+        return (
+          <text key={i} x={x} y={h - 6} textAnchor="middle" fontSize="9" fill="#94a3b8" fontFamily="Inter, sans-serif" fontWeight="600">
+            {label}
+          </text>
+        );
+      })}
+    </svg>
+  );
+}
+
+function DonutChart({ categories }: { categories: { label: string; value: number }[] }) {
+  const total = categories.reduce((s, c) => s + c.value, 0);
+  let cumulative = 0;
+  const r = 48;
+  const cx = 56;
+  const cy = 56;
+  const circumference = 2 * Math.PI * r;
+
+  return (
+    <div className="flex items-center gap-5">
+      <svg width="112" height="112" viewBox="0 0 112 112" className="flex-shrink-0">
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f1f5f9" strokeWidth="12" />
+        {categories.map((cat, i) => {
+          const pct = cat.value / (total || 1);
+          const offset = circumference * (1 - cumulative / (total || 1));
+          const dash = circumference * pct;
+          const segment = (
+            <circle
+              key={i}
+              cx={cx} cy={cy} r={r}
+              fill="none" stroke={COLORS[i % COLORS.length]}
+              strokeWidth="12"
+              strokeDasharray={`${dash} ${circumference - dash}`}
+              strokeDashoffset={offset}
+              transform={`rotate(-90 ${cx} ${cy})`}
+              strokeLinecap="round"
+            />
+          );
+          cumulative += cat.value;
+          return segment;
+        })}
+        <text x={cx} y={cy - 1} textAnchor="middle" fontSize="14" fontWeight="700" fill="#0f172a" fontFamily="Inter, sans-serif">
+          {categories.length}
+        </text>
+        <text x={cx} y={cy + 10} textAnchor="middle" fontSize="7" fontWeight="600" fill="#64748b" fontFamily="Inter, sans-serif" letterSpacing="1">
+          TOPICS
+        </text>
+      </svg>
+      <div className="space-y-1.5 flex-1 min-w-0">
+        {(categories.length > 0 ? categories : [{ label: "No Posts", value: 100 }]).map((cat, i) => {
+          const pct = total > 0 ? Math.round((cat.value / total) * 100) : 0;
+          return (
+            <div key={cat.label} className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: categories.length > 0 ? COLORS[i % COLORS.length] : "#e2e8f0" }} />
+              <span className="text-[11px] font-medium text-slate-600 truncate">{cat.label}</span>
+              <span className="ml-auto text-[11px] font-bold text-slate-800">{pct}%</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const { data: session } = useSession();
   const name = session?.user?.name || "Author";
@@ -240,76 +225,37 @@ export default function AdminDashboard() {
           fetch("/api/analytics/ga"),
           fetch("/api/ads/revenue"),
         ]);
-        
-        if (dbRes.ok) {
-          setDbData(await dbRes.json());
-        } else {
-          console.error("Overview stats fetch failed:", dbRes.status);
-          setDbData({
-            totalPosts: 0,
-            totalUsers: 0,
-            totalComments: 0,
-            categories: [],
-            recentPosts: [],
-            recentUsers: [],
-            activityFeed: [],
-            postsSpark: [0, 0, 0, 0, 0, 0, 0],
-            usersSpark: [0, 0, 0, 0, 0, 0, 0],
-            commentsSpark: [0, 0, 0, 0, 0, 0, 0],
-            revenueSpark: [0, 0, 0, 0, 0, 0, 0],
-          });
-        }
 
-        if (gaRes.ok) {
-          setGaData(await gaRes.json());
-        } else {
-          console.error("GA stats fetch failed:", gaRes.status);
-          setGaData({
-            totalViews: 0,
-            changePercent: 0,
-            trend: "up",
-            weeklyViews: [0, 0, 0, 0, 0, 0, 0],
-            weekLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-            isMock: true,
-          });
-        }
+        if (dbRes.ok) setDbData(await dbRes.json());
+        else setDbData({
+          totalPosts: 0, totalUsers: 0, totalComments: 0, categories: [],
+          recentPosts: [], recentUsers: [], activityFeed: [],
+          postsSpark: [0, 0, 0, 0, 0, 0, 0], usersSpark: [0, 0, 0, 0, 0, 0, 0],
+          commentsSpark: [0, 0, 0, 0, 0, 0, 0], revenueSpark: [0, 0, 0, 0, 0, 0, 0],
+        });
 
-        if (revRes.ok) {
-          setRevenueData(await revRes.json());
-        } else {
-          console.error("Revenue stats fetch failed:", revRes.status);
-          setRevenueData({
-            totalRevenue: 0,
-            monthRevenue: 0,
-          });
-        }
-      } catch (error) {
-        console.error("Dashboard fetch error", error);
+        if (gaRes.ok) setGaData(await gaRes.json());
+        else setGaData({
+          totalViews: 0, changePercent: 0, trend: "up",
+          weeklyViews: [0, 0, 0, 0, 0, 0, 0],
+          weekLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], isMock: true,
+        });
+
+        if (revRes.ok) setRevenueData(await revRes.json());
+        else setRevenueData({ totalRevenue: 0, monthRevenue: 0 });
+      } catch {
         setDbData({
-          totalPosts: 0,
-          totalUsers: 0,
-          totalComments: 0,
-          categories: [],
-          recentPosts: [],
-          recentUsers: [],
-          activityFeed: [],
-          postsSpark: [0, 0, 0, 0, 0, 0, 0],
-          usersSpark: [0, 0, 0, 0, 0, 0, 0],
-          commentsSpark: [0, 0, 0, 0, 0, 0, 0],
-          revenueSpark: [0, 0, 0, 0, 0, 0, 0],
+          totalPosts: 0, totalUsers: 0, totalComments: 0, categories: [],
+          recentPosts: [], recentUsers: [], activityFeed: [],
+          postsSpark: [0, 0, 0, 0, 0, 0, 0], usersSpark: [0, 0, 0, 0, 0, 0, 0],
+          commentsSpark: [0, 0, 0, 0, 0, 0, 0], revenueSpark: [0, 0, 0, 0, 0, 0, 0],
         });
         setGaData({
-          totalViews: 0,
-          changePercent: 0,
-          trend: "up",
+          totalViews: 0, changePercent: 0, trend: "up",
           weeklyViews: [0, 0, 0, 0, 0, 0, 0],
-          weekLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-          isMock: true,
+          weekLabels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], isMock: true,
         });
-        setRevenueData({
-          totalRevenue: 0,
-          monthRevenue: 0,
-        });
+        setRevenueData({ totalRevenue: 0, monthRevenue: 0 });
       } finally {
         setLoading(false);
       }
@@ -319,9 +265,12 @@ export default function AdminDashboard() {
 
   if (loading || !dbData || !gaData) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] py-12 space-y-4">
-        <Loader2 className="w-8 h-8 text-accent-600 animate-spin" />
-        <p className="text-xs font-bold uppercase tracking-widest text-brand-400">Loading Dashboard Metrics...</p>
+      <div className="flex flex-col items-center justify-center min-h-[500px] gap-4">
+        <div className="relative">
+          <Loader2 className="w-10 h-10 text-accent-500 animate-spin" />
+          <div className="absolute inset-0 w-10 h-10 rounded-full border-4 border-accent-500/20 animate-ping" />
+        </div>
+        <p className="text-sm font-bold uppercase tracking-widest text-brand-400">Loading Dashboard</p>
       </div>
     );
   }
@@ -332,33 +281,27 @@ export default function AdminDashboard() {
       value: dbData.totalPosts,
       spark: dbData.postsSpark || [10, 15, 20, 22, dbData.totalPosts],
       change: dbData.postsChange ? dbData.postsChange.text : `+${dbData.recentPosts.length}`,
-      period: dbData.postsChange ? "this week" : "recent",
       trend: dbData.postsChange ? dbData.postsChange.trend : "up",
-      icon: FileText,
-      color: "text-blue-600",
-      bg: "bg-blue-50",
+      icon: FileText, iconBg: "bg-blue-500/10", iconColor: "text-blue-500",
+      gradient: "from-blue-500/5 to-transparent",
     },
     {
       label: "Registered Users",
       value: dbData.totalUsers,
       spark: dbData.usersSpark || [2, 5, 8, 12, dbData.totalUsers],
       change: dbData.usersChange ? dbData.usersChange.text : `+${dbData.recentUsers.length}`,
-      period: dbData.usersChange ? "this week" : "recent",
       trend: dbData.usersChange ? dbData.usersChange.trend : "up",
-      icon: Users,
-      color: "text-violet-600",
-      bg: "bg-violet-50",
+      icon: Users, iconBg: "bg-violet-500/10", iconColor: "text-violet-500",
+      gradient: "from-violet-500/5 to-transparent",
     },
     {
       label: isAdmin ? "Page Views" : "My Post Views",
       value: gaData.totalViews,
       spark: gaData.weeklyViews,
       change: `${gaData.trend === "up" ? "+" : "-"}${gaData.changePercent}%`,
-      period: "vs last week",
       trend: gaData.trend,
-      icon: Eye,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50",
+      icon: Eye, iconBg: "bg-emerald-500/10", iconColor: "text-emerald-500",
+      gradient: "from-emerald-500/5 to-transparent",
       isMock: gaData.isMock,
     },
     {
@@ -366,28 +309,23 @@ export default function AdminDashboard() {
       value: dbData.totalComments,
       spark: dbData.commentsSpark || [5, 12, 10, 18, dbData.totalComments],
       change: dbData.commentsChange ? dbData.commentsChange.text : `+${dbData.totalComments}`,
-      period: dbData.commentsChange ? "this week" : "all-time",
       trend: dbData.commentsChange ? dbData.commentsChange.trend : "up",
-      icon: MessageSquare,
-      color: "text-amber-600",
-      bg: "bg-amber-50",
+      icon: MessageSquare, iconBg: "bg-amber-500/10", iconColor: "text-amber-500",
+      gradient: "from-amber-500/5 to-transparent",
     },
     {
       label: "Ad Revenue",
       value: revenueData?.totalRevenue || 0,
       spark: dbData.revenueSpark || [100, 150, 200, revenueData?.totalRevenue || 250],
       change: dbData.revenueChange ? dbData.revenueChange.text : `+$${revenueData?.monthRevenue || 0}`,
-      period: dbData.revenueChange ? "this week" : "this month",
       trend: dbData.revenueChange ? dbData.revenueChange.trend : "up",
-      icon: DollarSign,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50",
+      icon: DollarSign, iconBg: "bg-emerald-500/10", iconColor: "text-emerald-500",
+      gradient: "from-emerald-500/5 to-transparent",
     },
   ];
 
   const filteredKPIs = kpis.filter((kpi) => {
-    if (!isAdmin && kpi.label === "Registered Users") return false;
-    if (!isAdmin && kpi.label === "Ad Revenue") return false;
+    if (!isAdmin && (kpi.label === "Registered Users" || kpi.label === "Ad Revenue")) return false;
     return true;
   });
 
@@ -395,297 +333,255 @@ export default function AdminDashboard() {
 
   const quickActions = isAdmin
     ? [
-        { label: "New Post", href: "/admin/posts/new", primary: true },
-        { label: "Manage Categories", href: "/admin/categories", primary: false },
-        { label: "Settings & Analytics", href: "/admin/settings", primary: false },
-        { label: "User Management", href: "/admin/users", primary: false },
+        { label: "New Post", href: "/admin/posts/new", desc: "Create and publish content", icon: Plus, primary: true },
+        { label: "Manage Categories", href: "/admin/categories", desc: "Organize your topics", icon: BarChart3, primary: false },
+        { label: "Ad Management", href: "/admin/ads", desc: "Sponsorships & revenue", icon: DollarSign, primary: false },
+        { label: "Settings", href: "/admin/settings", desc: "Site configuration", icon: SettingsIcon, primary: false },
       ]
     : [
-        { label: "New Post", href: "/admin/posts/new", primary: true },
-        { label: "Manage My Posts", href: "/admin/posts", primary: false },
+        { label: "New Post", href: "/admin/posts/new", desc: "Create and publish content", icon: Plus, primary: true },
+        { label: "My Posts", href: "/admin/posts", desc: "View your articles", icon: FileText, primary: false },
       ];
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/60 pb-6">
+
+      {/* ─── Header ─── */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-accent-600 mb-1">Dashboard Overview</p>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Good morning, {name} 👋</h1>
-          <p className="text-slate-500 text-sm mt-0.5">Here's a quick look at your platform performance today.</p>
+          <div className="flex items-center gap-2.5 mb-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-accent-50 border border-accent-100 rounded-full text-[9px] font-bold uppercase tracking-widest text-accent-600">
+              <Zap className="w-3 h-3" />
+              Dashboard
+            </span>
+            <span className="w-1 h-1 rounded-full bg-brand-600" />
+            <span className="text-[9px] font-semibold text-brand-500 uppercase tracking-wider">{new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</span>
+          </div>
+          <h1 className="text-3xl font-black text-brand-900 tracking-tight">
+            {greeting}, {name.split(" ")[0]} <span className="text-accent-600">.</span>
+          </h1>
+          <p className="text-brand-500 text-sm mt-1 font-medium">Here&apos;s your platform performance snapshot.</p>
         </div>
         <Link
           href="/admin/posts/new"
-          className="inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-accent-600 text-white text-xs font-semibold uppercase tracking-wider px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm"
+          className="inline-flex items-center gap-2.5 bg-accent-600 hover:bg-accent-500 text-white text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-xl transition-all shadow-lg shadow-accent-600/20"
         >
           <Plus className="w-4 h-4" />
           New Post
         </Link>
       </div>
 
-      {/* GA Mock Alert Indicator — standard fallback when no tracking configured */}
+      {/* ─── Alerts ─── */}
       {isAdmin && gaData.isMock && !gaData.googleAnalyticsId && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-amber-50/70 border border-amber-200/60 rounded-2xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
           <div className="flex items-center gap-3">
             <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
             <div>
-              <p className="text-xs font-bold text-amber-800 uppercase tracking-wider">Demo Mode (Mock Analytics)</p>
-              <p className="text-xs text-amber-700 font-medium mt-0.5">
-                The Page Views card is displaying mock demo data. Set up Google Cloud service account keys in Settings to activate real Google Analytics reporting.
-              </p>
+              <p className="text-xs font-bold text-amber-800 uppercase tracking-wider">Demo Mode</p>
+              <p className="text-xs text-amber-700 font-medium mt-0.5">Page Views show mock data. Connect Google Analytics in Settings for live reporting.</p>
             </div>
           </div>
-          <Link
-            href="/admin/settings"
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-amber-100 border border-amber-200 text-amber-700 text-xs font-semibold uppercase tracking-wider rounded-xl transition-all flex-shrink-0"
-          >
+          <Link href="/admin/settings" className="flex items-center gap-1.5 px-4 py-2 bg-amber-100 hover:bg-amber-200/80 border border-amber-200/50 text-amber-800 text-xs font-semibold uppercase tracking-wider rounded-xl transition-all flex-shrink-0">
             <SettingsIcon className="w-3.5 h-3.5" /> Setup API
           </Link>
         </div>
       )}
 
-      {/* GA Partial Alert — Public tracking is fully active, Service Account pending or delayed */}
-      {isAdmin && gaData.isMock && gaData.googleAnalyticsId && (
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 p-5 bg-blue-50/50 border border-blue-200/60 rounded-2xl">
-          <div className="flex items-start gap-3.5">
-            <div className="p-2.5 bg-blue-100/70 text-blue-600 rounded-xl flex-shrink-0">
-              <Eye className="w-4 h-4 animate-pulse" />
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="text-xs font-bold text-blue-950 uppercase tracking-wider">Google Analytics tracking active</p>
-                <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                  Live ({gaData.googleAnalyticsId})
+      {isAdmin && !gaData.isMock && (
+        <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl">
+          <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+          <p className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Google Analytics Live — real-time page views active</p>
+        </div>
+      )}
+
+      {/* ─── KPI Cards ─── */}
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${isAdmin ? "lg:grid-cols-3 xl:grid-cols-5" : "lg:grid-cols-3"} gap-4`}>
+        {filteredKPIs.map((s, idx) => (
+          <div
+            key={s.label}
+            className="group relative bg-white border border-brand-100/60 rounded-2xl p-5 hover:border-brand-200/60 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+            style={{ animationDelay: `${idx * 80}ms` }}
+          >
+            {/* Gradient overlay */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${s.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+
+            <div className="relative">
+              <div className="flex items-start justify-between mb-3">
+                <div className={`p-2.5 ${s.iconBg} rounded-xl`}>
+                  <s.icon className={`w-5 h-5 ${s.iconColor}`} />
+                </div>
+                <Sparkline data={s.spark} color={s.trend === "up" ? "#10b981" : "#f59e0b"} />
+              </div>
+
+              <div className="flex items-baseline gap-1.5 mb-1">
+                <span className="text-2xl font-black text-brand-900 tracking-tight">{typeof s.value === "number" ? formatNumber(s.value) : s.value}</span>
+                <span className={`flex items-center gap-0.5 text-[10px] font-bold ${s.trend === "up" ? "text-emerald-600" : "text-amber-600"}`}>
+                  {s.trend === "up" ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  {s.change}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed max-w-3xl">
-                Your public website is actively tracking visitor page views and sending raw telemetry to your GA4 property! 
-                Due to a known Google Analytics UI bug that blocks adding new Google Cloud service accounts, admin-facing API reporting is currently using a mock demonstration dataset. 
-                Your live visitor data is completely safe and building up in your official Google Analytics dashboard.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 self-end sm:self-auto flex-shrink-0 pt-2 sm:pt-0">
-            <a
-              href="https://analytics.google.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all"
-            >
-              Open Analytics Web Console
-            </a>
-            <Link
-              href="/admin/settings"
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-accent-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all"
-            >
-              <SettingsIcon className="w-3.5 h-3.5" /> API Keys
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* GA Live Active Indicator */}
-      {isAdmin && !gaData.isMock && (
-        <div className="flex items-center gap-3 p-4 bg-emerald-50/70 border border-emerald-200/60 rounded-2xl">
-          <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-          <div>
-            <p className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Google Analytics Live</p>
-            <p className="text-xs text-emerald-700 font-medium mt-0.5">
-              Dashboard is successfully authenticated with the Google Analytics Data API. Displaying real-time page views and analytics.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* KPI Cards */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"} gap-5`}>
-        {filteredKPIs.map((s) => (
-          <div key={s.label} className="bg-white rounded-2xl border border-slate-200/60 p-6 hover:shadow-md transition-shadow relative">
-            {s.isMock && s.label === "Page Views" && gaData.googleAnalyticsId ? (
-              <span className="absolute top-4 right-4 text-[9px] font-bold uppercase tracking-widest bg-blue-50 text-blue-700 border border-blue-100 px-2.5 py-0.5 rounded-full">
-                Tracking Live
-              </span>
-            ) : s.isMock ? (
-              <span className="absolute top-4 right-4 text-[9px] font-bold uppercase tracking-widest bg-slate-100 text-slate-500 border border-slate-200/60 px-2.5 py-0.5 rounded-full">
-                Demo
-              </span>
-            ) : null}
-            {!s.isMock && s.label === "Page Views" && (
-              <span className="absolute top-4 right-4 text-[9px] font-bold uppercase tracking-widest bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">
-                Live
-              </span>
-            )}
-            <div className="flex items-start justify-between mb-4">
-              <div className={`p-2.5 ${s.bg} rounded-xl`}>
-                <s.icon className={`w-5 h-5 ${s.color}`} />
-              </div>
-              <Sparkline
-                data={s.spark}
-                color={s.trend === "up" ? "#10b981" : "#f59e0b"}
-              />
-            </div>
-            <p className="text-3xl font-bold text-slate-900 tracking-tight">{formatNumber(s.value)}</p>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-1">{s.label}</p>
-            <div className="flex items-center gap-1 mt-3">
-              {s.trend === "up" ? (
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
-              ) : (
-                <TrendingDown className="w-3.5 h-3.5 text-amber-500" />
-              )}
-              <span className={`text-xs font-medium ${s.trend === "up" ? "text-emerald-600" : "text-amber-600"}`}>
-                {s.change} {s.period}
-              </span>
+              <p className="text-[10px] font-semibold text-brand-500 uppercase tracking-wider">{s.label}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Charts Row */}
+      {/* ─── Charts Row ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Area Chart */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/60 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
+        <div className="lg:col-span-2 bg-white border border-brand-100/60 rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-5">
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-slate-900 uppercase tracking-wider">Page Views History</h2>
-                {gaData.isMock ? (
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full">Demo Data</span>
-                ) : (
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">GA4 Live</span>
-                )}
+              <div className="flex items-center gap-2.5">
+                <h2 className="text-sm font-black text-brand-900 uppercase tracking-wider">Page Views</h2>
+                <span className={`text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                  gaData.isMock ? "text-amber-700 bg-amber-50 border-amber-200/60" : "text-emerald-700 bg-emerald-50 border-emerald-200/60"
+                }`}>
+                  {gaData.isMock ? "Demo" : "Live"}
+                </span>
               </div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-1">Activity over the last 7 days</p>
+              <p className="text-[10px] font-medium text-brand-500 mt-1">Last 7 days</p>
             </div>
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl">
-              {gaData.trend === "up" ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-              {gaData.trend === "up" ? "+" : "-"}{gaData.changePercent}% vs last week
+            <div className={`flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-xl ${
+              gaData.trend === "up" ? "text-emerald-700 bg-emerald-50" : "text-amber-700 bg-amber-50"
+            }`}>
+              {gaData.trend === "up" ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+              {gaData.trend === "up" ? "+" : "-"}{gaData.changePercent}%
             </div>
           </div>
-          <div className="h-[150px] w-full">
+          <div className="h-[140px] w-full">
             <AreaChart weeklyData={gaData.weeklyViews} weekLabels={gaData.weekLabels} />
           </div>
         </div>
 
-        {/* Donut */}
-        <div className="bg-white rounded-2xl border border-slate-200/60 p-6 shadow-sm">
-          <div className="mb-6">
-            <h2 className="text-base font-bold text-slate-900 uppercase tracking-wider">Posts by Category</h2>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-1">Topic distribution analysis</p>
+        <div className="bg-white border border-brand-100/60 rounded-2xl p-6 shadow-sm">
+          <div className="mb-5">
+            <h2 className="text-sm font-black text-brand-900 uppercase tracking-wider">Categories</h2>
+            <p className="text-[10px] font-medium text-brand-500 mt-1">Post distribution</p>
           </div>
           <DonutChart categories={dbData.categories} />
         </div>
       </div>
 
-      {/* Tables Row */}
+      {/* ─── Tables + Activity ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Posts & Users Tabs */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/60 overflow-hidden shadow-sm">
-          <div className="flex items-center justify-between px-6 pt-5 pb-0 border-b border-slate-100">
+        <div className="lg:col-span-2 bg-white border border-brand-100/60 rounded-2xl overflow-hidden shadow-sm">
+          <div className="flex items-center justify-between px-6 pt-5 pb-0">
             <div className="flex gap-6">
               {tabs.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`text-xs font-bold uppercase tracking-widest pb-4 border-b-2 transition-colors cursor-pointer ${
+                  className={`text-[10px] font-bold uppercase tracking-widest pb-4 border-b-2 transition-colors cursor-pointer ${
                     activeTab === tab
-                      ? "border-accent-600 text-accent-600 font-bold"
-                      : "border-transparent text-slate-400 hover:text-slate-600"
+                      ? "border-accent-600 text-accent-600"
+                      : "border-transparent text-brand-400 hover:text-brand-900"
                   }`}
                 >
-                  {tab}
+                  {tab === "posts" ? "Recent Posts" : "New Users"}
                 </button>
               ))}
             </div>
-            <Link href={activeTab === "posts" ? "/admin/posts" : "/admin/users"} className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-accent-600 transition-colors pb-4">
-              View All <ArrowRight className="w-3.5 h-3.5" />
+            <Link href={activeTab === "posts" ? "/admin/posts" : "/admin/users"} className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-brand-500 hover:text-accent-600 transition-colors pb-4">
+              View All <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
           {activeTab === "posts" ? (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-brand-50">
               {dbData.recentPosts.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-400 font-medium">No posts published yet.</div>
-              ) : dbData.recentPosts.map((post, i) => (
-                <div key={i} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50/30 transition-colors group">
-                  <div className="w-10 h-10 rounded-xl bg-slate-100 flex-shrink-0 flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-slate-400" />
+                <div className="p-8 text-center text-xs text-brand-400 font-medium">No posts yet.</div>
+              ) : dbData.recentPosts.slice(0, 5).map((post, i) => (
+                <div key={i} className="flex items-center gap-4 px-6 py-3.5 hover:bg-brand-50/50 transition-colors group">
+                  <div className="w-9 h-9 rounded-xl bg-brand-50 flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-4 h-4 text-brand-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 truncate">{post.title}</p>
-                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mt-0.5">
+                    <p className="text-xs font-semibold text-brand-900 truncate">{post.title}</p>
+                    <p className="text-[10px] font-medium text-brand-500 mt-0.5">
                       {post.category?.name || "Uncategorized"} · {new Date(post.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                     </p>
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0">
-                    <StatusBadge status={post.published} />
-                    <div className="opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity">
-                      <Link href={`/admin/posts/${post.id}/edit`} className="p-1.5 hover:text-accent-600 text-slate-400 transition-colors"><Pencil className="w-4 h-4" /></Link>
-                    </div>
+                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider ${
+                      post.published ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-brand-50 text-brand-600 border border-brand-100"
+                    }`}>
+                      {post.published ? "Published" : "Draft"}
+                    </span>
+                    <Link href={`/admin/posts/${post.id}/edit`} className="p-1.5 text-brand-400 hover:text-accent-600 transition-colors opacity-0 group-hover:opacity-100">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Link>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-brand-50">
               {dbData.recentUsers.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-400 font-medium">No users registered yet.</div>
-              ) : dbData.recentUsers.map((user, i) => (
-                <div key={i} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50/30 transition-colors">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex-shrink-0 flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">{(user.name ?? user.email)[0].toUpperCase()}</span>
+                <div className="p-8 text-center text-xs text-brand-400 font-medium">No users yet.</div>
+              ) : dbData.recentUsers.slice(0, 5).map((user, i) => (
+                <div key={i} className="flex items-center gap-4 px-6 py-3.5 hover:bg-brand-50/50 transition-colors">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent-50 to-violet-50 flex items-center justify-center flex-shrink-0">
+                    <span className="text-accent-600 text-xs font-bold">{(user.name ?? user.email)[0].toUpperCase()}</span>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-slate-800">{user.name ?? "—"}</p>
-                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mt-0.5">{user.email}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-brand-900 truncate">{user.name ?? "—"}</p>
+                    <p className="text-[10px] font-medium text-brand-500 mt-0.5">{user.email}</p>
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <span className="text-xs text-slate-400">Joined {new Date(user.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
-                    <span className="px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-full text-[9px] font-bold uppercase tracking-widest">{user.role}</span>
-                  </div>
+                  <span className="text-[9px] text-brand-600 px-2.5 py-0.5 bg-brand-50 rounded-full font-semibold uppercase tracking-wider">{user.role}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        {/* Quick Actions + Activity */}
         <div className="space-y-6">
           {/* Quick Actions */}
-          <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-sm">
-            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Quick Actions</h2>
+          <div className="bg-white border border-brand-100/60 rounded-2xl p-5 shadow-sm">
+            <h2 className="text-[10px] font-black text-brand-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Zap className="w-3.5 h-3.5 text-accent-600" />
+              Quick Actions
+            </h2>
             <div className="space-y-2">
               {quickActions.map((action) => (
                 <Link
                   key={action.label}
                   href={action.href}
-                  className={`flex items-center justify-between w-full px-4 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all ${
+                  className={`flex items-center justify-between w-full px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all ${
                     action.primary
-                      ? "bg-slate-900 text-white hover:bg-accent-600 shadow-sm"
-                      : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                      ? "bg-accent-600 hover:bg-accent-500 text-white shadow-lg shadow-accent-600/20"
+                      : "bg-brand-50 hover:bg-brand-100/80 text-brand-700"
                   }`}
                 >
-                  {action.label}
-                  <ArrowRight className="w-4 h-4" />
+                  <div className="flex items-center gap-2.5">
+                    <action.icon className="w-3.5 h-3.5" />
+                    <span>{action.label}</span>
+                  </div>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               ))}
             </div>
           </div>
 
           {/* Activity Feed */}
-          <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-sm">
-            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Recent Activity</h2>
-            <div className="space-y-4">
+          <div className="bg-white border border-brand-100/60 rounded-2xl p-5 shadow-sm">
+            <h2 className="text-[10px] font-black text-brand-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Activity className="w-3.5 h-3.5 text-accent-600" />
+              Recent Activity
+            </h2>
+            <div className="space-y-3.5">
               {dbData.activityFeed.length === 0 ? (
-                <div className="text-center text-xs text-slate-400 font-medium py-4">No recent activity</div>
-              ) : dbData.activityFeed.map((item, i) => (
+                <div className="text-center text-xs text-brand-400 font-medium py-4">No recent activity</div>
+              ) : dbData.activityFeed.slice(0, 6).map((item, i) => (
                 <div key={i} className="flex items-start gap-3">
-                  <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${item.dot}`} />
+                  <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${item.dot || "bg-accent-500"}`} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                      {item.action} <span className="font-bold text-slate-800">{item.target}</span>
+                    <p className="text-xs text-brand-600 font-medium leading-relaxed">
+                      {item.action} <span className="font-bold text-brand-900">{item.target}</span>
                     </p>
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-0.5">{timeAgo(item.time)}</p>
+                    <p className="text-[9px] font-semibold text-brand-400 uppercase tracking-wider mt-0.5">{timeAgo(item.time)}</p>
                   </div>
                 </div>
               ))}
