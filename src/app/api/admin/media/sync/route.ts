@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { readFile } from "fs/promises";
 import path from "path";
-import * as ftp from "basic-ftp";
+import { createFtpClient, getFtpAccessOptions, setFtpTransferMode } from "@/lib/ftp-client";
 
 const SETTINGS_PATH = path.join(process.cwd(), "data", "settings.json");
 
@@ -53,7 +53,6 @@ export async function POST(req: NextRequest) {
     }
 
     const ftpHost = settings.ftpHost?.trim();
-    const ftpPort = parseInt(settings.ftpPort || "21", 10);
     const ftpUser = settings.ftpUser?.trim();
     const ftpPass = settings.ftpPass?.trim();
     const ftpRemotePath = settings.ftpRemotePath?.trim() || "/";
@@ -63,18 +62,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "FTP server configurations are missing in settings." }, { status: 400 });
     }
 
-    const client = new ftp.Client();
-    client.ftp.verbose = false;
+    const client = createFtpClient(settings);
+    setFtpTransferMode(client, settings);
 
     let syncCount = 0;
     try {
-      await client.access({
-        host: ftpHost,
-        port: ftpPort,
-        user: ftpUser,
-        password: ftpPass,
-        secure: false,
-      });
+      await client.access(getFtpAccessOptions(settings));
 
       // List remote files
       const list = await client.list(ftpRemotePath);
@@ -108,8 +101,6 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // --- Also patch Post coverImage & content ---
-        // Fetch all FTP media assets so we know what filenames to match
         const ftpAssets = await prisma.media.findMany({
           where: { storageType: "FTP" },
           select: { filename: true },
@@ -117,7 +108,6 @@ export async function POST(req: NextRequest) {
         const ftpFilenames = ftpAssets.map((a: { filename: string }) => a.filename);
 
         if (ftpFilenames.length > 0) {
-          // 1. Fix Post coverImage
           const postsWithRelativeCovers = await prisma.post.findMany({
             where: {
               coverImage: { startsWith: "/" },
@@ -137,8 +127,6 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          // 2. Fix Post inline images / links in content
-          // We look for posts whose content includes 'src="/' or 'href="/'
           const postsWithRelativeContent = await prisma.post.findMany({
             where: {
               OR: [
@@ -152,7 +140,6 @@ export async function POST(req: NextRequest) {
             let updatedContent = post.content;
             let contentChanged = false;
 
-            // Replace relative FTP file references
             for (const filename of ftpFilenames) {
               const oldSrc = `src="/${filename}"`;
               const newSrc = `src="${baseUrl}/${filename}"`;
@@ -181,13 +168,11 @@ export async function POST(req: NextRequest) {
       }
 
       for (const fileInfo of list) {
-        // Only catalog files (not directories or links)
-        if (fileInfo.type !== 1) continue; 
+        if (fileInfo.type !== 1) continue;
 
         const name = fileInfo.name;
         if (registeredSet.has(name)) continue;
 
-        // Guess MIME type based on extension
         const ext = name.split(".").pop()?.toLowerCase() ?? "";
         const mime = getMimeFromExt(ext);
         const url = `${baseUrl}/${name}`;

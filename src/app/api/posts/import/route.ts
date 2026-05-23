@@ -7,7 +7,7 @@ import { writeFile, mkdir, readFile, unlink } from "fs/promises";
 import path from "path";
 import os from "os";
 import { existsSync } from "fs";
-import * as ftp from "basic-ftp";
+import { createFtpClient, getFtpAccessOptions, setFtpTransferMode } from "@/lib/ftp-client";
 
 const SETTINGS_PATH = path.join(process.cwd(), "data", "settings.json");
 
@@ -39,7 +39,6 @@ async function downloadAndSaveImage(imageUrl: string, originalFilename: string):
     
     if (ftpEnabled) {
       const ftpHost = settings.ftpHost?.trim();
-      const ftpPort = parseInt(settings.ftpPort || "21", 10);
       const ftpUser = settings.ftpUser?.trim();
       const ftpPass = settings.ftpPass?.trim();
       const ftpRemotePath = settings.ftpRemotePath?.trim() || "/";
@@ -53,21 +52,14 @@ async function downloadAndSaveImage(imageUrl: string, originalFilename: string):
         throw new Error("FTP Public URL is not configured in settings. Please set the public HTTP/HTTPS URL for your FTP storage under Admin Settings -> FTP Storage tab before importing posts.");
       }
       
-      const client = new ftp.Client();
-      client.ftp.verbose = false;
+      const client = createFtpClient(settings);
+      setFtpTransferMode(client, settings);
 
       const tmpFile = path.join(os.tmpdir(), unique);
       await writeFile(tmpFile, buffer);
 
       try {
-        await client.access({
-          host: ftpHost,
-          port: ftpPort,
-          user: ftpUser,
-          password: ftpPass,
-          secure: false,
-        });
-
+        await client.access(getFtpAccessOptions(settings));
         await client.ensureDir(ftpRemotePath);
 
         const remoteFilePath = path.posix.join(ftpRemotePath, unique);

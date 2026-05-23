@@ -5,10 +5,10 @@ import { writeFile, mkdir, readFile, unlink } from "fs/promises";
 import path from "path";
 import os from "os";
 import { existsSync } from "fs";
-import * as ftp from "basic-ftp";
+import { createFtpClient, getFtpAccessOptions, setFtpTransferMode } from "@/lib/ftp-client";
 import { prisma } from "@/lib/prisma";
 
-const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_SIZE = 5 * 1024 * 1024;
 const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif", "image/x-icon", "image/vnd.microsoft.icon"];
 const SETTINGS_PATH = path.join(process.cwd(), "data", "settings.json");
 
@@ -43,13 +43,11 @@ export async function POST(req: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // 1. Read Storage Settings
     const settings = await readSettings();
     const ftpEnabled = settings.ftpEnabled === "true";
 
     if (ftpEnabled) {
       const ftpHost = settings.ftpHost?.trim();
-      const ftpPort = parseInt(settings.ftpPort || "21", 10);
       const ftpUser = settings.ftpUser?.trim();
       const ftpPass = settings.ftpPass?.trim();
       const ftpRemotePath = settings.ftpRemotePath?.trim() || "/";
@@ -63,22 +61,15 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "FTP Public URL is not configured in Settings. Please set the public HTTP/HTTPS URL for your FTP storage under Admin Settings -> FTP Storage tab before uploading." }, { status: 400 });
       }
 
-      const client = new ftp.Client();
-      client.ftp.verbose = false;
+      const client = createFtpClient(settings);
+      setFtpTransferMode(client, settings);
 
       const tmpFile = path.join(os.tmpdir(), unique);
 
       try {
         await writeFile(tmpFile, buffer);
 
-        await client.access({
-          host: ftpHost,
-          port: ftpPort,
-          user: ftpUser,
-          password: ftpPass,
-          secure: false,
-        });
-
+        await client.access(getFtpAccessOptions(settings));
         await client.ensureDir(ftpRemotePath);
 
         const remoteFilePath = path.posix.join(ftpRemotePath, unique);
@@ -109,7 +100,6 @@ export async function POST(req: NextRequest) {
         await unlink(tmpFile).catch(() => {});
       }
     } else {
-      // 2. Fallback to Local Storage
       const uploadDir = path.join(process.cwd(), "public", "uploads");
       if (!existsSync(uploadDir)) await mkdir(uploadDir, { recursive: true });
 
@@ -117,7 +107,6 @@ export async function POST(req: NextRequest) {
 
       const returnedUrl = `/uploads/${unique}`;
 
-      // Register inside Database
       await prisma.media.create({
         data: {
           name: file.name,

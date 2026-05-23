@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { writeFile, unlink } from "fs/promises";
 import path from "path";
 import os from "os";
-import * as ftp from "basic-ftp";
+import { createFtpClient, getFtpAccessOptions, setFtpTransferMode } from "@/lib/ftp-client";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { ftpHost, ftpPort, ftpUser, ftpPass, ftpRemotePath, ftpPublicUrl } = await req.json();
+    const { ftpHost, ftpPort, ftpUser, ftpPass, ftpRemotePath, ftpPublicUrl, ftpSecure, ftpMode } = await req.json();
 
     if (!ftpHost?.trim() || !ftpUser?.trim() || !ftpPass?.trim()) {
       return NextResponse.json(
@@ -29,25 +29,30 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const port = parseInt(ftpPort || "21", 10);
-    const remotePath = ftpRemotePath?.trim() || "/";
+    const settings: Record<string, string> = {
+      ftpHost: ftpHost || "",
+      ftpPort: ftpPort || "21",
+      ftpUser: ftpUser || "",
+      ftpPass: ftpPass || "",
+      ftpSecure: ftpSecure || "none",
+      ftpMode: ftpMode || "passive",
+      ftpTimeout: "30",
+      ftpRemotePath: ftpRemotePath || "/",
+    };
+
+    const remotePath = settings.ftpRemotePath.trim() || "/";
     const filename = `test-${Date.now()}.txt`;
-    const content = `FTP test file created at ${new Date().toISOString()}\nServer: ${ftpHost}:${port}\nPath: ${remotePath}`;
+    const content = `FTP test file created at ${new Date().toISOString()}\nServer: ${settings.ftpHost}:${settings.ftpPort}\nPath: ${remotePath}\nMode: ${settings.ftpMode}\nSecure: ${settings.ftpSecure}`;
 
     const tmpFile = path.join(os.tmpdir(), filename);
     await writeFile(tmpFile, content, "utf-8");
 
-    const client = new ftp.Client();
-    client.ftp.verbose = false;
+    const client = createFtpClient(settings);
+    setFtpTransferMode(client, settings);
 
     try {
-      await client.access({
-        host: ftpHost.trim(),
-        port,
-        user: ftpUser.trim(),
-        password: ftpPass.trim(),
-        secure: false,
-      });
+      const accessOpts = getFtpAccessOptions(settings);
+      await client.access(accessOpts);
 
       console.log(`[FTP Test File] Ensuring directory exists: ${remotePath}`);
       await client.ensureDir(remotePath);
@@ -84,15 +89,14 @@ export async function POST(req: NextRequest) {
         url: fileUrl,
         remotePath,
         fileSize,
-        // Additional diagnostic info
         diagnostics: {
           remotePath,
           filename,
           remoteFilePath,
           baseUrl,
           fileUrl,
-          verifiedSize: fileSize
-        }
+          verifiedSize: fileSize,
+        },
       });
     } catch (ftpErr: any) {
       console.error("[FTP Test File Error]", ftpErr);

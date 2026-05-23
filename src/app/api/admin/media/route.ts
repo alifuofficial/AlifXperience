@@ -6,9 +6,9 @@ import { writeFile, mkdir, readFile, unlink } from "fs/promises";
 import path from "path";
 import os from "os";
 import { existsSync } from "fs";
-import * as ftp from "basic-ftp";
+import { createFtpClient, getFtpAccessOptions, setFtpTransferMode } from "@/lib/ftp-client";
 
-const MAX_SIZE = 100 * 1024 * 1024; // 100 MB
+const MAX_SIZE = 100 * 1024 * 1024;
 const SETTINGS_PATH = path.join(process.cwd(), "data", "settings.json");
 
 async function readSettings() {
@@ -33,7 +33,6 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get("search") || "";
     const type = searchParams.get("type") || "all";
 
-    // Build Prisma query filters
     let whereClause: any = {};
 
     if (search) {
@@ -101,13 +100,11 @@ export async function POST(req: NextRequest) {
     const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // Detect MIME type overrides (e.g. for APK)
     let finalMime = file.type || "application/octet-stream";
     if (ext === "apk") {
       finalMime = "application/vnd.android.package-archive";
     }
 
-    // 1. Read Storage Settings
     const settings = await readSettings();
     const ftpEnabled = settings.ftpEnabled === "true";
 
@@ -116,7 +113,6 @@ export async function POST(req: NextRequest) {
 
     if (ftpEnabled) {
       const ftpHost = settings.ftpHost?.trim();
-      const ftpPort = parseInt(settings.ftpPort || "21", 10);
       const ftpUser = settings.ftpUser?.trim();
       const ftpPass = settings.ftpPass?.trim();
       const ftpRemotePath = settings.ftpRemotePath?.trim() || "/";
@@ -130,22 +126,15 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "FTP Public URL is not configured in Settings. Please set the public HTTP/HTTPS URL for your FTP storage under Admin Settings -> FTP Storage tab before uploading." }, { status: 400 });
       }
 
-      const client = new ftp.Client();
-      client.ftp.verbose = false;
+      const client = createFtpClient(settings);
+      setFtpTransferMode(client, settings);
 
       const tmpFile = path.join(os.tmpdir(), unique);
 
       try {
         await writeFile(tmpFile, buffer);
 
-        await client.access({
-          host: ftpHost,
-          port: ftpPort,
-          user: ftpUser,
-          password: ftpPass,
-          secure: false,
-        });
-
+        await client.access(getFtpAccessOptions(settings));
         await client.ensureDir(ftpRemotePath);
 
         const remoteFilePath = path.posix.join(ftpRemotePath, unique);
@@ -162,7 +151,6 @@ export async function POST(req: NextRequest) {
         await unlink(tmpFile).catch(() => {});
       }
     } else {
-      // Local Storage Fallback
       const uploadDir = path.join(process.cwd(), "public", "uploads");
       if (!existsSync(uploadDir)) {
         await mkdir(uploadDir, { recursive: true });
@@ -173,7 +161,6 @@ export async function POST(req: NextRequest) {
       storageType = "LOCAL";
     }
 
-    // Register inside Database
     const mediaItem = await prisma.media.create({
       data: {
         name: file.name,

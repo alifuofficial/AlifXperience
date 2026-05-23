@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import * as ftp from "basic-ftp";
+import { createFtpClient, getFtpAccessOptions, setFtpTransferMode } from "@/lib/ftp-client";
 
 export async function POST(req: NextRequest) {
-  // 1. Enforce Admin session
   const session = await getServerSession(authOptions);
   if (!session || (session.user as any)?.role !== "ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const { ftpHost, ftpPort, ftpUser, ftpPass } = await req.json();
+    const { ftpHost, ftpPort, ftpUser, ftpPass, ftpSecure, ftpMode } = await req.json();
 
     if (!ftpHost?.trim() || !ftpUser?.trim() || !ftpPass?.trim()) {
       return NextResponse.json(
@@ -20,21 +19,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const port = parseInt(ftpPort || "21", 10);
-    const client = new ftp.Client();
-    client.ftp.verbose = false;
+    const settings: Record<string, string> = {
+      ftpHost: ftpHost || "",
+      ftpPort: ftpPort || "21",
+      ftpUser: ftpUser || "",
+      ftpPass: ftpPass || "",
+      ftpSecure: ftpSecure || "none",
+      ftpMode: ftpMode || "passive",
+      ftpTimeout: "30",
+    };
+
+    const client = createFtpClient(settings);
+    setFtpTransferMode(client, settings);
 
     try {
-      // Connect with a 10 second timeout limit
-      await client.access({
-        host: ftpHost.trim(),
-        port,
-        user: ftpUser.trim(),
-        password: ftpPass.trim(),
-        secure: false, // Standard FTP for testing, or standard implicit configurations
-      });
+      const accessOpts = getFtpAccessOptions(settings);
+      await client.access(accessOpts);
 
-      // Connection succeeded! Close client and return
       return NextResponse.json({
         success: true,
         message: "Successfully established a connection to the FTP server!",
@@ -44,9 +45,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: ftpErr.message || "Could not connect to the FTP server. Please verify your host and credentials.",
+          error: ftpErr.message || "Could not connect to the FTP server. Please verify your host, credentials, and security settings.",
         },
-        { status: 200 } // Return 200 so the frontend gets a clean structured error message rather than a 500 stack trace
+        { status: 200 }
       );
     } finally {
       client.close();

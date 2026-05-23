@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { unlink, readFile } from "fs/promises";
 import path from "path";
 import { existsSync } from "fs";
-import * as ftp from "basic-ftp";
+import { createFtpClient, getFtpAccessOptions, setFtpTransferMode } from "@/lib/ftp-client";
 
 const SETTINGS_PATH = path.join(process.cwd(), "data", "settings.json");
 
@@ -40,23 +40,16 @@ export async function DELETE(
     if (item.storageType === "FTP") {
       const settings = await readSettings();
       const ftpHost = settings.ftpHost?.trim();
-      const ftpPort = parseInt(settings.ftpPort || "21", 10);
       const ftpUser = settings.ftpUser?.trim();
       const ftpPass = settings.ftpPass?.trim();
       const ftpRemotePath = settings.ftpRemotePath?.trim() || "/";
 
       if (ftpHost && ftpUser && ftpPass) {
-        const client = new ftp.Client();
-        client.ftp.verbose = false;
+        const client = createFtpClient(settings);
+        setFtpTransferMode(client, settings);
 
         try {
-          await client.access({
-            host: ftpHost,
-            port: ftpPort,
-            user: ftpUser,
-            password: ftpPass,
-            secure: false,
-          });
+          await client.access(getFtpAccessOptions(settings));
 
           const remoteFilePath = path.posix.join(ftpRemotePath, item.filename);
           await client.remove(remoteFilePath);

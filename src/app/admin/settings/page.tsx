@@ -143,7 +143,7 @@ export default function SettingsPage() {
   const [testingFtp, setTestingFtp] = useState(false);
   const [ftpTestResult, setFtpTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [creatingFtpTestFile, setCreatingFtpTestFile] = useState(false);
-  const [ftpTestFileResult, setFtpTestFileResult] = useState<{ success: boolean; message: string; url?: string } | null>(null);
+  const [ftpTestFileResult, setFtpTestFileResult] = useState<{ success: boolean; message: string; url?: string; remotePath?: string; filename?: string; fileSize?: number } | null>(null);
 
   useEffect(() => {
     if (session?.user) {
@@ -209,6 +209,8 @@ export default function SettingsPage() {
     const ftpPort = settings.ftpPort?.trim() || "21";
     const ftpUser = settings.ftpUser?.trim();
     const ftpPass = settings.ftpPass?.trim();
+    const ftpSecure = settings.ftpSecure ?? "none";
+    const ftpMode = settings.ftpMode ?? "passive";
 
     if (!ftpHost || !ftpUser || !ftpPass) {
       setFtpTestResult({
@@ -223,7 +225,7 @@ export default function SettingsPage() {
       const res = await fetch("/api/settings/ftp-test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ftpHost, ftpPort, ftpUser, ftpPass }),
+        body: JSON.stringify({ ftpHost, ftpPort, ftpUser, ftpPass, ftpSecure, ftpMode }),
       });
       const data = await res.json();
 
@@ -259,6 +261,8 @@ export default function SettingsPage() {
     const ftpPass = settings.ftpPass?.trim();
     const ftpRemotePath = settings.ftpRemotePath?.trim() || "/";
     const ftpPublicUrl = settings.ftpPublicUrl?.trim();
+    const ftpSecure = settings.ftpSecure ?? "none";
+    const ftpMode = settings.ftpMode ?? "passive";
 
     if (!ftpHost || !ftpUser || !ftpPass) {
       setFtpTestFileResult({
@@ -282,7 +286,7 @@ export default function SettingsPage() {
       const res = await fetch("/api/settings/ftp-test-file", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ftpHost, ftpPort, ftpUser, ftpPass, ftpRemotePath, ftpPublicUrl }),
+        body: JSON.stringify({ ftpHost, ftpPort, ftpUser, ftpPass, ftpRemotePath, ftpPublicUrl, ftpSecure, ftpMode }),
       });
       const data = await res.json();
 
@@ -296,6 +300,9 @@ export default function SettingsPage() {
           success: true,
           message: data.message || "Test file uploaded successfully!",
           url: data.url,
+          remotePath: data.remotePath,
+          filename: data.filename,
+          fileSize: data.fileSize,
         });
       }
     } catch (err: any) {
@@ -1269,6 +1276,37 @@ export default function SettingsPage() {
                       {showFtpPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
                   </div>
+                </Field>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Field label="Security Mode" hint="Use FTPS for encrypted connections. Explicit TLS starts plain then upgrades. Implicit TLS encrypts from the start.">
+                  <select
+                    value={settings.ftpSecure ?? "none"}
+                    onChange={(e) => set("ftpSecure")(e.target.value)}
+                    className="w-full text-xs font-medium text-brand-900 bg-brand-50 border border-brand-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent-400/20 focus:border-accent-400 transition-all"
+                  >
+                    <option value="none">None (Plain FTP)</option>
+                    <option value="explicit">FTPS (Explicit TLS)</option>
+                    <option value="implicit">FTPS (Implicit TLS)</option>
+                  </select>
+                </Field>
+                <Field label="Transfer Mode" hint="Passive mode is recommended for servers behind NAT/firewalls. Try Active if uploads fail.">
+                  <select
+                    value={settings.ftpMode ?? "passive"}
+                    onChange={(e) => set("ftpMode")(e.target.value)}
+                    className="w-full text-xs font-medium text-brand-900 bg-brand-50 border border-brand-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-accent-400/20 focus:border-accent-400 transition-all"
+                  >
+                    <option value="passive">Passive (Recommended)</option>
+                    <option value="active">Active</option>
+                  </select>
+                </Field>
+                <Field label="Timeout (seconds)" hint="Connection timeout in seconds. Increase for slow servers.">
+                  <Input
+                    value={settings.ftpTimeout ?? "30"}
+                    onChange={set("ftpTimeout")}
+                    placeholder="30"
+                  />
                 </Field>
               </div>
 
