@@ -20,6 +20,8 @@ import {
   Calendar,
   Sparkles,
   ShieldOff,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 interface Subscriber {
@@ -42,6 +44,10 @@ export default function NewsletterPage() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loadingSubscribers, setLoadingSubscribers] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   // Adding manual subscriber
   const [newEmail, setNewEmail] = useState("");
@@ -155,6 +161,9 @@ export default function NewsletterPage() {
 
       // Refresh list
       setSubscribers((prev) => prev.filter((s) => s.id !== id));
+      if (currentPage > Math.ceil((subscribers.length - 1) / pageSize) && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
     } catch (err: any) {
       alert(err.message);
     }
@@ -212,6 +221,18 @@ export default function NewsletterPage() {
   const filteredSubscribers = subscribers.filter((sub) =>
     sub.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Pagination calculations
+  const totalPages = Math.max(1, Math.ceil(filteredSubscribers.length / pageSize));
+  const paginatedSubscribers = filteredSubscribers.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  // Reset to page 1 when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -469,7 +490,7 @@ export default function NewsletterPage() {
                 </p>
               </div>
             ) : (
-              filteredSubscribers.map((sub) => (
+              paginatedSubscribers.map((sub) => (
                 <div
                   key={sub.id}
                   className="flex items-center justify-between p-3 bg-white border border-brand-100/50 rounded-lg hover:border-brand-200 transition-all shadow-sm group"
@@ -485,7 +506,7 @@ export default function NewsletterPage() {
                   <button
                     onClick={() => handleDeleteSubscriber(sub.id, sub.email)}
                     title="Remove Subscriber"
-                    className="p-1.5 text-brand-300 hover:text-red-600 hover:bg-red-50 rounded-md transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    className="p-1.5 text-brand-300 hover:text-red-600 hover:bg-red-50 rounded-md transition-all sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -493,6 +514,55 @@ export default function NewsletterPage() {
               ))
             )}
           </div>
+
+          {/* Pagination */}
+          {filteredSubscribers.length > 0 && totalPages > 1 && (
+            <div className="flex items-center justify-between pt-3 border-t border-brand-100/60 mt-2">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-brand-400">
+                {((currentPage - 1) * pageSize) + 1}–{Math.min(currentPage * pageSize, filteredSubscribers.length)} of {filteredSubscribers.length}
+              </p>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-1.5 rounded-lg border border-brand-200 text-brand-600 hover:bg-brand-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                  .reduce<(number | string)[]>((acc, p, i, arr) => {
+                    if (i > 0 && (p as number) - (arr[i - 1] as number) > 1) acc.push("...");
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((item, idx) =>
+                    typeof item === "string" ? (
+                      <span key={`ellipsis-${idx}`} className="px-1 text-[10px] text-brand-300">...</span>
+                    ) : (
+                      <button
+                        key={item}
+                        onClick={() => setCurrentPage(item as number)}
+                        className={`min-w-[28px] h-7 flex items-center justify-center rounded-lg text-[10px] font-bold uppercase transition-all ${
+                          currentPage === item
+                            ? "bg-brand-900 text-white"
+                            : "border border-brand-200 text-brand-600 hover:bg-brand-50"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    )
+                  )}
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-1.5 rounded-lg border border-brand-200 text-brand-600 hover:bg-brand-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
