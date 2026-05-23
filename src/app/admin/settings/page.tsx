@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   Settings, User, Globe, Search, Share2, MessageSquare,
   Bell, Shield, Save, Loader2, Check, AlertTriangle, Eye, EyeOff, ChevronRight, Mail, HardDrive,
-  Megaphone, ImageIcon, Type, Image
+  Megaphone, ImageIcon, Type, Image, FileText
 } from "lucide-react";
 import bcrypt from "bcryptjs";
 import MediaSelectorModal from "@/components/MediaSelectorModal";
@@ -142,6 +142,8 @@ export default function SettingsPage() {
   const [mediaTarget, setMediaTarget] = useState<"logoUrl" | "faviconUrl" | "profileAvatarUrl" | null>(null);
   const [testingFtp, setTestingFtp] = useState(false);
   const [ftpTestResult, setFtpTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [creatingFtpTestFile, setCreatingFtpTestFile] = useState(false);
+  const [ftpTestFileResult, setFtpTestFileResult] = useState<{ success: boolean; message: string; url?: string } | null>(null);
 
   useEffect(() => {
     if (session?.user) {
@@ -201,6 +203,7 @@ export default function SettingsPage() {
   const testFtpConnection = async () => {
     setTestingFtp(true);
     setFtpTestResult(null);
+    setFtpTestFileResult(null);
 
     const ftpHost = settings.ftpHost?.trim();
     const ftpPort = settings.ftpPort?.trim() || "21";
@@ -242,6 +245,66 @@ export default function SettingsPage() {
       });
     } finally {
       setTestingFtp(false);
+    }
+  };
+
+  const createFtpTestFile = async () => {
+    setCreatingFtpTestFile(true);
+    setFtpTestFileResult(null);
+    setFtpTestResult(null);
+
+    const ftpHost = settings.ftpHost?.trim();
+    const ftpPort = settings.ftpPort?.trim() || "21";
+    const ftpUser = settings.ftpUser?.trim();
+    const ftpPass = settings.ftpPass?.trim();
+    const ftpRemotePath = settings.ftpRemotePath?.trim() || "/";
+    const ftpPublicUrl = settings.ftpPublicUrl?.trim();
+
+    if (!ftpHost || !ftpUser || !ftpPass) {
+      setFtpTestFileResult({
+        success: false,
+        message: "Please fill in FTP Host, Username, and Password fields first.",
+      });
+      setCreatingFtpTestFile(false);
+      return;
+    }
+
+    if (!ftpPublicUrl) {
+      setFtpTestFileResult({
+        success: false,
+        message: "FTP Public URL is required to generate the test file URL.",
+      });
+      setCreatingFtpTestFile(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/settings/ftp-test-file", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ftpHost, ftpPort, ftpUser, ftpPass, ftpRemotePath, ftpPublicUrl }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || data.success === false) {
+        setFtpTestFileResult({
+          success: false,
+          message: data.error || data.message || "Failed to create test file.",
+        });
+      } else {
+        setFtpTestFileResult({
+          success: true,
+          message: data.message || "Test file uploaded successfully!",
+          url: data.url,
+        });
+      }
+    } catch (err: any) {
+      setFtpTestFileResult({
+        success: false,
+        message: err.message || "An unexpected error occurred.",
+      });
+    } finally {
+      setCreatingFtpTestFile(false);
     }
   };
 
@@ -1250,6 +1313,44 @@ export default function SettingsPage() {
                   </div>
                 </div>
               )}
+
+              {/* Test File feedback */}
+              {ftpTestFileResult && (
+                <div className={`mt-4 p-4 border rounded-xl flex items-start gap-3 transition-all ${
+                  ftpTestFileResult.success
+                    ? "bg-emerald-50 border-emerald-100 text-emerald-800"
+                    : "bg-red-50 border-red-100 text-red-800"
+                }`}>
+                  <div className="w-5 h-5 flex-shrink-0 mt-0.5">
+                    {ftpTestFileResult.success ? (
+                      <Check className="w-5 h-5 text-emerald-500" />
+                    ) : (
+                      <AlertTriangle className="w-5 h-5 text-red-500" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-wider">
+                      {ftpTestFileResult.success ? "Test File Uploaded" : "Test File Failed"}
+                    </p>
+                    <p className="text-[9px] font-medium leading-relaxed mt-0.5">
+                      {ftpTestFileResult.message}
+                    </p>
+                    {ftpTestFileResult.url && (
+                      <div className="mt-2 flex items-center gap-2 bg-white/60 rounded-lg px-3 py-2 border border-emerald-200/60">
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-emerald-600 shrink-0">URL:</span>
+                        <a
+                          href={ftpTestFileResult.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] font-mono text-accent-600 hover:text-accent-700 underline truncate"
+                        >
+                          {ftpTestFileResult.url}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </Section>
 
             <div className="flex justify-end gap-3">
@@ -1266,6 +1367,24 @@ export default function SettingsPage() {
                   </>
                 ) : (
                   <span>Test Connection</span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={createFtpTestFile}
+                disabled={creatingFtpTestFile || savingSettings}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider border border-accent-300 text-accent-700 bg-accent-50 hover:bg-accent-100 rounded-lg disabled:opacity-50 transition-all cursor-pointer font-medium"
+              >
+                {creatingFtpTestFile ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Creating...</span>
+                  </>
+                ) : (
+                  <>
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>Create Test File</span>
+                  </>
                 )}
               </button>
               <SaveBtn saving={savingSettings} saved={savedSettings} onClick={saveSettings} />
