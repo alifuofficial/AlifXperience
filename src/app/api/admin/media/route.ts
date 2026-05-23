@@ -126,6 +126,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "FTP storage is enabled but host or credentials are missing in Settings." }, { status: 500 });
       }
 
+      if (!ftpPublicUrl) {
+        return NextResponse.json({ error: "FTP Public URL is not configured in Settings. Please set the public HTTP/HTTPS URL for your FTP storage under Admin Settings -> FTP Storage tab before uploading." }, { status: 400 });
+      }
+
       const client = new ftp.Client();
       client.ftp.verbose = false;
 

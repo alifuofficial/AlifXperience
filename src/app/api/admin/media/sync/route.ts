@@ -88,6 +88,98 @@ export async function POST(req: NextRequest) {
 
       const baseUrl = ftpPublicUrl.replace(/\/$/, "");
 
+      // Auto-heal and patch any relative FTP URLs currently saved in your database
+      if (baseUrl) {
+        const relativeFTPMedia = await prisma.media.findMany({
+          where: {
+            storageType: "FTP",
+            url: { startsWith: "/" },
+          },
+        });
+
+        if (relativeFTPMedia.length > 0) {
+          console.log(`[FTP Sync Auto-Heal] Found ${relativeFTPMedia.length} relative FTP media URLs. Prepending public host...`);
+          for (const m of relativeFTPMedia) {
+            const fixedUrl = `${baseUrl}/${m.filename}`;
+            await prisma.media.update({
+              where: { id: m.id },
+              data: { url: fixedUrl },
+            });
+          }
+        }
+
+        // --- Also patch Post coverImage & content ---
+        // Fetch all FTP media assets so we know what filenames to match
+        const ftpAssets = await prisma.media.findMany({
+          where: { storageType: "FTP" },
+          select: { filename: true },
+        });
+        const ftpFilenames = ftpAssets.map((a: { filename: string }) => a.filename);
+
+        if (ftpFilenames.length > 0) {
+          // 1. Fix Post coverImage
+          const postsWithRelativeCovers = await prisma.post.findMany({
+            where: {
+              coverImage: { startsWith: "/" },
+            },
+          });
+
+          for (const post of postsWithRelativeCovers) {
+            const coverImage = post.coverImage || "";
+            const filename = coverImage.split("/").pop() || "";
+            if (ftpFilenames.includes(filename)) {
+              const fixedCover = `${baseUrl}/${filename}`;
+              await prisma.post.update({
+                where: { id: post.id },
+                data: { coverImage: fixedCover },
+              });
+              console.log(`[FTP Sync Auto-Heal] Fixed coverImage for post "${post.title}" -> ${fixedCover}`);
+            }
+          }
+
+          // 2. Fix Post inline images / links in content
+          // We look for posts whose content includes 'src="/' or 'href="/'
+          const postsWithRelativeContent = await prisma.post.findMany({
+            where: {
+              OR: [
+                { content: { contains: 'src="/' } },
+                { content: { contains: 'href="/' } },
+              ],
+            },
+          });
+
+          for (const post of postsWithRelativeContent) {
+            let updatedContent = post.content;
+            let contentChanged = false;
+
+            // Replace relative FTP file references
+            for (const filename of ftpFilenames) {
+              const oldSrc = `src="/${filename}"`;
+              const newSrc = `src="${baseUrl}/${filename}"`;
+              if (updatedContent.includes(oldSrc)) {
+                updatedContent = updatedContent.replaceAll(oldSrc, newSrc);
+                contentChanged = true;
+              }
+
+              const oldHref = `href="/${filename}"`;
+              const newHref = `href="${baseUrl}/${filename}"`;
+              if (updatedContent.includes(oldHref)) {
+                updatedContent = updatedContent.replaceAll(oldHref, newHref);
+                contentChanged = true;
+              }
+            }
+
+            if (contentChanged) {
+              await prisma.post.update({
+                where: { id: post.id },
+                data: { content: updatedContent },
+              });
+              console.log(`[FTP Sync Auto-Heal] Fixed content URLs for post "${post.title}"`);
+            }
+          }
+        }
+      }
+
       for (const fileInfo of list) {
         // Only catalog files (not directories or links)
         if (fileInfo.type !== 1) continue; 

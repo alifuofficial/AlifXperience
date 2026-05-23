@@ -48,6 +48,10 @@ async function downloadAndSaveImage(imageUrl: string, originalFilename: string):
       if (!ftpHost || !ftpUser || !ftpPass) {
         throw new Error("FTP credentials incomplete in settings");
       }
+
+      if (!ftpPublicUrl) {
+        throw new Error("FTP Public URL is not configured in settings. Please set the public HTTP/HTTPS URL for your FTP storage under Admin Settings -> FTP Storage tab before importing posts.");
+      }
       
       const client = new ftp.Client();
       client.ftp.verbose = false;
