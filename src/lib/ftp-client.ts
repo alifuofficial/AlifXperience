@@ -37,8 +37,11 @@ export function getFtpAccessOptions(settings: Record<string, string>): FtpAccess
 export function setFtpTransferMode(client: ftp.Client, settings: Record<string, string>): void {
   const mode = settings.ftpMode || "passive";
   if (mode === "active") {
-    client.ftp.passive = false;
+    // basic-ftp uses passive mode by default; active mode is set via internal flag
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client.ftp as any).passive = false;
   } else {
-    client.ftp.passive = true;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client.ftp as any).passive = true;
   }
 }
