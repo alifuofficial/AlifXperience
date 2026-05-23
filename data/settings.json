@@ -6,7 +6,6 @@
   "logoType": "text",
   "logotext": "AlifXperience",
   "logoUrl": "",
-  "footerBio": "",
   "faviconUrl": "/uploads/1779084702996-rxo3gm.ico",
   "twitterUrl": "",
   "linkedinUrl": "",
@@ -25,6 +24,7 @@
   "allowComments": "true",
   "requireCommentApproval": "false",
   "maintenanceMode": "true",
+  "footerBio": "",
   "newsTickerEnabled": "false",
   "smtpHost": "",
   "smtpPort": "587",
@@ -48,5 +48,7 @@
   "bannerAdIsOpen": "true",
   "bannerAdImageUrl": "",
   "bannerAdLinkUrl": "/advertise",
-  "bannerAdHtmlCode": ""
+  "bannerAdHtmlCode": "",
+  "downloadCountdown": "12",
+  "showPostViews": "true"
 }

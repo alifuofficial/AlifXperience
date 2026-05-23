@@ -51,6 +51,7 @@ model Post {
   category      Category  @relation(fields: [categoryId], references: [id])
   author        User      @relation(fields: [authorId], references: [id])
   coAuthorsJson String? // Optional JSON string array of additional co-author User IDs
+  views         Int       @default(0)
 
   @@index([authorId])
   @@index([categoryId])
@@ -86,15 +87,16 @@ model Subscriber {
 }
 
 model Media {
-  id          String   @id @default(cuid())
-  name        String // Original filename
-  filename    String   @default("") // Generated unique name
-  url         String // Public URL
-  mimeType    String   @default("image/png") // File mime type
-  size        Int // File size in bytes
-  storageType String   @default("LOCAL") // "LOCAL" or "FTP"
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  name          String // Original filename
+  filename      String   @default("") // Generated unique name
+  url           String // Public URL
+  mimeType      String   @default("image/png") // File mime type
+  size          Int // File size in bytes
+  storageType   String   @default("LOCAL") // "LOCAL" or "FTP"
+  downloadCount Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Ad {

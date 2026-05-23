@@ -58,6 +58,8 @@ const DEFAULTS = {
   bannerAdImageUrl: "",
   bannerAdLinkUrl: "/advertise",
   bannerAdHtmlCode: "",
+  downloadCountdown: "12",
+  showPostViews: "true",
 };
 
 async function readSettings() {

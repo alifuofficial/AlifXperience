@@ -34,6 +34,7 @@ export default async function AdminPostsPage() {
     category: { name: p.category?.name || "General" },
     author: { name: p.author?.name || null },
     coAuthorsJson: p.coAuthorsJson,
+    views: p.views,
   }));
 
   return <PostsManagerClient initialPosts={serializedPosts} userMap={userMap} />;

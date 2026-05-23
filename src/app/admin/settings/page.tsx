@@ -605,6 +605,7 @@ export default function SettingsPage() {
             <Section title="System & Widgets">
               <Toggle value={bool("maintenanceMode")} onChange={setBool("maintenanceMode")} label="Maintenance Mode — make the site temporarily unavailable to visitors" />
               <Toggle value={bool("newsTickerEnabled")} onChange={setBool("newsTickerEnabled")} label="News Ticker — show/hide the animated breaking news marquee on top of pages" />
+              <Toggle value={bool("showPostViews")} onChange={setBool("showPostViews")} label="Show Post Views — display view counts publicly on single post pages" />
             </Section>
 
             <div className="flex justify-end">

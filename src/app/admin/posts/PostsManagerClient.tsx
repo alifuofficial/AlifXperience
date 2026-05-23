@@ -33,6 +33,7 @@ interface Post {
   category: { name: string };
   author: { name: string | null };
   coAuthorsJson: string | null;
+  views: number;
 }
 
 interface PostsManagerClientProps {
@@ -326,7 +327,7 @@ export default function PostsManagerClient({ initialPosts, userMap }: PostsManag
         ) : (
           <>
             {/* Table Header */}
-            <div className="grid grid-cols-[auto_2.5fr_1.2fr_1.2fr_1fr_auto] gap-4 px-6 py-4 border-b border-brand-50 bg-brand-50/40 select-none">
+            <div className="grid grid-cols-[auto_2.2fr_1.1fr_1.1fr_0.7fr_0.9fr_auto] gap-4 px-6 py-4 border-b border-brand-50 bg-brand-50/40 select-none">
               {/* Checkbox Header */}
               <button
                 type="button"
@@ -341,7 +342,7 @@ export default function PostsManagerClient({ initialPosts, userMap }: PostsManag
                 )}
               </button>
 
-              {["Title", "Category", "Author", "Date", "Actions"].map((h) => (
+              {["Title", "Category", "Author", "Views", "Date", "Actions"].map((h) => (
                 <span key={h} className="text-[8px] font-bold uppercase tracking-widest text-brand-300">
                   {h}
                 </span>
@@ -357,7 +358,7 @@ export default function PostsManagerClient({ initialPosts, userMap }: PostsManag
                 return (
                   <div
                     key={post.id}
-                    className={`grid grid-cols-[auto_2.5fr_1.2fr_1.2fr_1fr_auto] gap-4 items-center px-6 py-4 transition-all group ${
+                    className={`grid grid-cols-[auto_2.2fr_1.1fr_1.1fr_0.7fr_0.9fr_auto] gap-4 items-center px-6 py-4 transition-all group ${
                       isSelected ? "bg-brand-50/70" : "hover:bg-brand-50/20"
                     }`}
                   >
@@ -408,6 +409,12 @@ export default function PostsManagerClient({ initialPosts, userMap }: PostsManag
                     <span className="text-[10px] font-bold text-brand-400 truncate flex items-center gap-1.5" title={getAuthorsText(post)}>
                       <User className="w-3.5 h-3.5 text-brand-200 flex-shrink-0" />
                       {getAuthorsText(post)}
+                    </span>
+
+                    {/* Views */}
+                    <span className="text-[10px] font-bold text-brand-400 flex items-center gap-1.5">
+                      <Eye className="w-3.5 h-3.5 text-brand-200 flex-shrink-0" />
+                      {post.views || 0}
                     </span>
 
                     {/* Date */}

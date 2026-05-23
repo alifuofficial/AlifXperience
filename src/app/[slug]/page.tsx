@@ -11,7 +11,7 @@ import AdSpace from "@/components/AdSpace";
 import InContentAds from "@/components/InContentAds";
 import {
   Clock, ArrowLeft, Calendar, User,
-  MessageSquare, TrendingUp, BookOpen, Mail,
+  MessageSquare, TrendingUp, BookOpen, Mail, Eye,
 } from "lucide-react";
 
 import { readFile } from "fs/promises";
@@ -238,6 +238,16 @@ export default async function PostPage({ params }: Props) {
   const [post, trending] = await Promise.all([getPost(slug), getTrendingPosts(slug)]);
   if (!post) notFound();
 
+  // Increment views count atomically
+  try {
+    await prisma.post.update({
+      where: { id: post.id },
+      data: { views: { increment: 1 } },
+    });
+  } catch (error) {
+    console.error("Failed to increment post views:", error);
+  }
+
   const related = await getRelatedPosts(post.category.id, slug);
   const mins = readTime(post.content);
 
@@ -265,11 +275,69 @@ export default async function PostPage({ params }: Props) {
   ];
   const authorsText = allAuthors.map((a) => a.name).join(" & ");
 
+  // Replace [download id="..."] shortcodes with HTML attachment boxes
+  let processedContent = post.content;
+  const shortcodeRegex = /\[download id=["']([^"']+)["']\]/g;
+  const shortcodeMatches = [...processedContent.matchAll(shortcodeRegex)];
+  
+  if (shortcodeMatches.length > 0) {
+    const mediaIds = shortcodeMatches.map(m => m[1]);
+    const mediaItems = await prisma.media.findMany({
+      where: { id: { in: mediaIds } },
+    });
+    
+    const mediaMap = new Map(mediaItems.map(m => [m.id, m]));
+    
+    for (const match of shortcodeMatches) {
+      const bareShortcode = match[0];
+      const mediaId = match[1];
+      const media = mediaMap.get(mediaId);
+      
+      if (media) {
+        const sizeMb = (media.size / (1024 * 1024)).toFixed(2) + " MB";
+        const attachmentHtml = `
+<div class="my-8 p-6 bg-white border border-brand-100/60 rounded-2xl shadow-sm text-center not-prose max-w-md mx-auto">
+  <div class="w-12 h-12 bg-accent-50 rounded-2xl flex items-center justify-center text-accent-600 mx-auto mb-4">
+    <svg class="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+    </svg>
+  </div>
+  <div class="space-y-1 mb-5">
+    <div class="text-xs font-bold text-brand-900 break-all px-2 leading-snug">${media.name}</div>
+    <div class="text-[9px] text-brand-400 font-bold uppercase tracking-wider">${sizeMb} · File Attachment</div>
+  </div>
+  <a href="/download?fileId=${media.id}" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-accent-600 hover:bg-accent-500 !text-white text-[10px] font-extrabold uppercase tracking-wider rounded-xl transition-all shadow-md shadow-accent-600/10 active:scale-[0.99] cursor-pointer">
+    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"></path>
+    </svg>
+    <span>Download Attachment</span>
+  </a>
+</div>
+        `;
+        
+        // Escape bareShortcode for use in regex
+        const escapedShortcode = bareShortcode.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const wrappedDoubleQuotePattern = new RegExp(`<p>\\s*${escapedShortcode}\\s*</p>`, "g");
+        const wrappedSingleQuotePattern = new RegExp(`<p>\\s*\\[download id='${mediaId}']\\s*</p>`, "g");
+        
+        const oldContent = processedContent;
+        processedContent = processedContent.replace(wrappedDoubleQuotePattern, attachmentHtml);
+        processedContent = processedContent.replace(wrappedSingleQuotePattern, attachmentHtml);
+        
+        if (processedContent === oldContent) {
+          processedContent = processedContent.replace(bareShortcode, attachmentHtml);
+        }
+      } else {
+        processedContent = processedContent.replace(bareShortcode, "");
+      }
+    }
+  }
+
   // Split content at midpoint to inject inline recommendation
-  const midPoint = Math.floor(post.content.length / 2);
-  const splitIdx = post.content.indexOf("</p>", midPoint);
-  const firstHalf = splitIdx > -1 ? post.content.slice(0, splitIdx + 4) : post.content;
-  const secondHalf = splitIdx > -1 ? post.content.slice(splitIdx + 4) : "";
+  const midPoint = Math.floor(processedContent.length / 2);
+  const splitIdx = processedContent.indexOf("</p>", midPoint);
+  const firstHalf = splitIdx > -1 ? processedContent.slice(0, splitIdx + 4) : processedContent;
+  const secondHalf = splitIdx > -1 ? processedContent.slice(splitIdx + 4) : "";
   const inlineRec = related[0] ?? trending[0];
 
   const settings = await readPublicSettings();
@@ -375,6 +443,12 @@ export default async function PostPage({ params }: Props) {
                 <Clock className="w-3.5 h-3.5" />
                 <span className="text-[10px] font-bold uppercase tracking-wider">{mins} min read</span>
               </div>
+              {settings.showPostViews !== "false" && (
+                <div className="flex items-center gap-1.5 text-brand-400">
+                  <Eye className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">{post.views + 1} views</span>
+                </div>
+              )}
               <div className="ml-auto">
                 {/* Client component — safe to render here */}
                 <ShareButtons title={post.title} slug={slug} />
@@ -457,6 +531,15 @@ export default async function PostPage({ params }: Props) {
                   <span className="text-[10px] font-bold uppercase tracking-wider text-brand-400">Read time</span>
                   <span className="text-[10px] font-bold text-brand-700">{mins} min</span>
                 </div>
+                {settings.showPostViews !== "false" && (
+                  <>
+                    <div className="h-px bg-brand-50" />
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-brand-400">Views</span>
+                      <span className="text-[10px] font-bold text-brand-700">{post.views + 1}</span>
+                    </div>
+                  </>
+                )}
                 <div className="h-px bg-brand-50" />
                 <div className="flex items-start justify-between">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-brand-400">

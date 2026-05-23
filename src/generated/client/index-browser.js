@@ -153,7 +153,8 @@ exports.Prisma.PostScalarFieldEnum = {
   categoryId: 'categoryId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  coAuthorsJson: 'coAuthorsJson'
+  coAuthorsJson: 'coAuthorsJson',
+  views: 'views'
 };
 
 exports.Prisma.CommentScalarFieldEnum = {
@@ -178,6 +179,7 @@ exports.Prisma.MediaScalarFieldEnum = {
   mimeType: 'mimeType',
   size: 'size',
   storageType: 'storageType',
+  downloadCount: 'downloadCount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

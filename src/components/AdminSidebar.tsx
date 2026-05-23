@@ -22,12 +22,14 @@ import {
   Megaphone,
   Menu,
   MessageSquare,
+  Download,
 } from "lucide-react";
 
 const navItems = [
   { label: "Overview", href: "/admin", icon: LayoutDashboard },
   { label: "Posts", href: "/admin/posts", icon: FileText },
   { label: "Media", href: "/admin/media", icon: ImageIcon },
+  { label: "Downloads", href: "/admin/download", icon: Download },
   { label: "Menus", href: "/admin/menus", icon: Menu },
   { label: "Ads", href: "/admin/ads", icon: Megaphone },
   { label: "Categories", href: "/admin/categories", icon: FolderTree },

@@ -25,6 +25,8 @@ const PUBLIC_DEFAULTS = {
   googleClientId: "",
   advertisePageEnabled: "true",
   disabledAdSlots: "",
+  downloadCountdown: "12",
+  showPostViews: "true",
 };
 
 async function readSettings() {
@@ -54,6 +56,8 @@ async function readSettings() {
       googleClientId: parsed.googleClientId ?? PUBLIC_DEFAULTS.googleClientId,
       advertisePageEnabled: parsed.advertisePageEnabled ?? PUBLIC_DEFAULTS.advertisePageEnabled,
       disabledAdSlots: parsed.disabledAdSlots ?? PUBLIC_DEFAULTS.disabledAdSlots,
+      downloadCountdown: parsed.downloadCountdown ?? PUBLIC_DEFAULTS.downloadCountdown,
+      showPostViews: parsed.showPostViews ?? PUBLIC_DEFAULTS.showPostViews,
     };
   } catch {
     return PUBLIC_DEFAULTS;
