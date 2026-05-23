@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Zap, Mail, ArrowRight, Loader2, Check } from "lucide-react";
 import { useState, useEffect } from "react";
 import AdSpace from "./AdSpace";
@@ -194,7 +195,9 @@ export default function Footer() {
           <div className="col-span-2 lg:col-span-1 space-y-6">
             <Link href="/" className="flex items-center gap-2">
               {(siteSettings.logoType === "image" && siteSettings.logoUrl) ? (
-                <img src={siteSettings.logoUrl} alt={siteSettings.siteName} className="max-h-10 w-auto" />
+                <div className="relative h-10 w-40">
+                  <Image src={siteSettings.logoUrl} alt={siteSettings.siteName} fill className="object-contain object-left" sizes="160px" />
+                </div>
               ) : (
                 <>
                   <div className="w-8 h-8 bg-accent-600 rounded-lg flex items-center justify-center shadow-lg shadow-accent-600/30">

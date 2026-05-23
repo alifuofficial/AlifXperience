@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
     workerThreads: false,
     cpus: 1,
   },
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "**" },
+      { protocol: "http", hostname: "**" },
+    ],
+  },
   async headers() {
     return [
       {

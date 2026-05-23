@@ -1,5 +1,16 @@
 import type { Metadata } from "next";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-display",
+});
 import { Providers } from "@/components/Providers";
 import GoogleScripts from "@/components/GoogleScripts";
 import { readFile } from "fs/promises";
@@ -60,7 +71,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <GoogleScripts />
       <body className="font-sans antialiased">
         <Providers>

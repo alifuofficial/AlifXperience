@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { Search, Menu, X, Zap, ChevronDown, ChevronRight } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -103,7 +104,9 @@ export default function Navbar() {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 flex-shrink-0">
               {(siteSettings.logoType === "image" && siteSettings.logoUrl) ? (
-                <img src={siteSettings.logoUrl} alt={siteSettings.siteName} className="max-h-8 w-auto" />
+                <div className="relative h-8 w-32">
+                  <Image src={siteSettings.logoUrl} alt={siteSettings.siteName} fill className="object-contain object-left" priority sizes="128px" />
+                </div>
               ) : (
                 <>
                   <div className="w-7 h-7 bg-accent-600 rounded flex items-center justify-center shadow-sm shadow-accent-600/30">
@@ -230,7 +233,9 @@ export default function Navbar() {
         <div className="p-5 border-b border-brand-100 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             {(siteSettings.logoType === "image" && siteSettings.logoUrl) ? (
-              <img src={siteSettings.logoUrl} alt={siteSettings.siteName} className="max-h-6 w-auto" />
+              <div className="relative h-6 w-24">
+                <Image src={siteSettings.logoUrl} alt={siteSettings.siteName} fill className="object-contain object-left" sizes="96px" />
+              </div>
             ) : (
               <>
                 <div className="w-6 h-6 bg-accent-600 rounded flex items-center justify-center">

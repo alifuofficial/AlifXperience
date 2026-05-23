@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Mail, ExternalLink, Check } from "lucide-react";
 
 interface AdModel {
@@ -51,7 +52,9 @@ export default function NewsletterBanner({ className = "" }: { className?: strin
               rel="noopener noreferrer"
               className="block rounded-xl overflow-hidden hover:opacity-90 transition-opacity"
             >
-              <img src={ad.imageUrl} alt={ad.title} className="w-full h-auto" loading="lazy" decoding="async" />
+              <div className="relative w-full aspect-[3/2]">
+                <Image src={ad.imageUrl} alt={ad.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 192px" />
+              </div>
             </Link>
           </div>
         ) : null}

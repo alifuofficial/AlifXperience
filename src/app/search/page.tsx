@@ -7,6 +7,7 @@ import Ticker from "@/components/Ticker";
 import Footer from "@/components/Footer";
 import AdSpace from "@/components/AdSpace";
 import Link from "next/link";
+import Image from "next/image";
 import { Search as SearchIcon, ArrowRight, Clock, Loader2, X } from "lucide-react";
 
 interface Post {
@@ -102,8 +103,8 @@ function SearchContent() {
                     className="flex gap-4 bg-white rounded-2xl border border-brand-100/60 p-5 hover:shadow-lg hover:shadow-brand-900/5 transition-all group"
                   >
                     {post.imageUrl && (
-                      <div className="w-32 h-24 flex-shrink-0 rounded-xl overflow-hidden">
-                        <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />
+                      <div className="w-32 h-24 flex-shrink-0 rounded-xl overflow-hidden relative">
+                        <Image src={post.imageUrl} alt={post.title} fill className="w-full h-full object-cover" sizes="128px" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">

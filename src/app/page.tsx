@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Ticker from "@/components/Ticker";
 import Footer from "@/components/Footer";
@@ -226,12 +227,13 @@ export default async function Home() {
             >
               <div className="absolute inset-0">
                 {mainFeatured.coverImage ? (
-                  <img
+                  <Image
                     src={mainFeatured.coverImage}
                     alt={mainFeatured.title}
+                    fill
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-103"
-                    fetchPriority="high"
-                    decoding="async"
+                    priority
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 800px"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-brand-800 to-indigo-950 flex items-center justify-center">
@@ -284,11 +286,12 @@ export default async function Home() {
               >
                 <div className="absolute inset-0">
                   {secondary1.coverImage ? (
-                    <img
+                    <Image
                       src={secondary1.coverImage}
                       alt={secondary1.title}
+                      fill
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-103"
-                      decoding="async"
+                      sizes="(max-width: 768px) 100vw, 33vw"
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-brand-800 to-indigo-950 flex items-center justify-center">
@@ -324,11 +327,12 @@ export default async function Home() {
               >
                 <div className="absolute inset-0">
                   {secondary2.coverImage ? (
-                    <img
+                    <Image
                       src={secondary2.coverImage}
                       alt={secondary2.title}
+                      fill
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-103"
-                      decoding="async"
+                      sizes="(max-width: 768px) 100vw, 33vw"
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-brand-800 to-indigo-950 flex items-center justify-center">
@@ -404,12 +408,12 @@ export default async function Home() {
                 >
                   <div className="aspect-video overflow-hidden bg-brand-50 relative">
                     {post.coverImage ? (
-                      <img
+                      <Image
                         src={post.coverImage}
                         alt={post.title}
+                        fill
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
-                        loading="lazy"
-                        decoding="async"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">

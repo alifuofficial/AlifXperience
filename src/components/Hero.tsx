@@ -2,15 +2,19 @@
 
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Hero() {
   return (
     <section className="relative h-[85vh] min-h-[600px] overflow-hidden">
       <div className="absolute inset-0">
-        <img 
+        <Image 
           src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80" 
           alt="Hero" 
+          fill
+          priority
           className="w-full h-full object-cover"
+          sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/70 to-slate-900/80" />
       </div>
@@ -45,9 +49,11 @@ export default function Hero() {
           </div>
           
           <div className="mt-6 flex items-center gap-4 opacity-0 animate-[fadeInUp_0.8s_ease_0.4s_forwards]">
-            <img 
+            <Image 
               src="https://api.dicebear.com/7.x/initials/svg?seed=SK&backgroundColor=5c7cfa&textColor=ffffff" 
               alt="Author" 
+              width={40}
+              height={40}
               className="w-10 h-10 rounded-full"
             />
             <div>

@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import NewsletterPopup from "@/components/NewsletterPopup";
 import { ShareButtons, CommentBox, NewsletterSidebar } from "@/components/PostClientComponents";
 import Link from "next/link";
+import Image from "next/image";
 import AdSpace from "@/components/AdSpace";
 import InContentAds from "@/components/InContentAds";
 import {
@@ -122,8 +123,8 @@ function InlineRecommendation({ post }: {
         {post.excerpt && <p className="text-xs text-brand-400 mt-1 line-clamp-1">{post.excerpt}</p>}
       </div>
       {post.coverImage && (
-        <div className="w-24 h-24 flex-shrink-0">
-          <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" />
+        <div className="w-24 h-24 flex-shrink-0 relative">
+          <Image src={post.coverImage} alt={post.title} fill className="w-full h-full object-cover" sizes="96px" />
         </div>
       )}
     </div>
@@ -179,8 +180,8 @@ function TrendingSidebar({ posts }: {
               <p className="text-[9px] font-bold text-brand-300 uppercase tracking-wider mt-1">{formatDate(post.createdAt)}</p>
             </div>
             {post.coverImage && (
-              <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0">
-                <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+              <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 relative">
+                <Image src={post.coverImage} alt={post.title} fill className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" sizes="56px" />
               </div>
             )}
           </Link>
@@ -200,9 +201,9 @@ function RelatedPosts({ posts }: {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {posts.map((post) => (
           <Link key={post.id} href={`/${post.slug}`} className="group flex flex-col bg-white rounded-xl border border-brand-100/60 overflow-hidden hover:shadow-lg hover:shadow-brand-900/5 transition-all">
-            <div className="aspect-video bg-brand-100 overflow-hidden">
+            <div className="aspect-video bg-brand-100 overflow-hidden relative">
               {post.coverImage
-                ? <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                ? <Image src={post.coverImage} alt={post.title} fill className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 100vw, 50vw" />
                 : <div className="w-full h-full flex items-center justify-center"><BookOpen className="w-8 h-8 text-brand-200" /></div>
               }
             </div>
@@ -418,10 +419,10 @@ export default async function PostPage({ params }: Props) {
                     <div
                       key={index}
                       className="w-9 h-9 rounded-full border-2 border-white bg-gradient-to-br from-accent-400 to-indigo-500 flex items-center justify-center shadow-sm relative z-[2] first:z-[3] overflow-hidden"
-                      title={auth.name}
+                      title={auth.name || undefined}
                     >
                       {auth.avatarUrl ? (
-                        <img src={auth.avatarUrl} alt={auth.name} className="w-full h-full object-cover" />
+                        <Image src={auth.avatarUrl} alt={auth.name || ""} fill className="w-full h-full object-cover" sizes="36px" />
                       ) : (
                         <User className="w-4 h-4 text-white" />
                       )}
@@ -466,8 +467,8 @@ export default async function PostPage({ params }: Props) {
           <div>
             {/* Featured image — contained within article column */}
             {post.coverImage && (
-              <div className="aspect-video rounded-xl overflow-hidden mb-8 shadow-md shadow-brand-900/5">
-                <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" />
+              <div className="aspect-video rounded-xl overflow-hidden mb-8 shadow-md shadow-brand-900/5 relative">
+                <Image src={post.coverImage} alt={post.title} fill priority className="w-full h-full object-cover" sizes="(max-width: 1280px) 100vw, 1200px" />
               </div>
             )}
 
@@ -567,9 +568,9 @@ export default async function PostPage({ params }: Props) {
               {allAuthors.map((auth, idx) => (
                 <div key={idx} className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-400 to-indigo-500 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-400 to-indigo-500 flex-shrink-0 flex items-center justify-center overflow-hidden relative">
                       {auth.avatarUrl ? (
-                        <img src={auth.avatarUrl} alt={auth.name} className="w-full h-full object-cover" />
+                        <Image src={auth.avatarUrl} alt={auth.name || ""} fill className="w-full h-full object-cover" sizes="40px" />
                       ) : (
                         <User className="w-4 h-4 text-white" />
                       )}

@@ -4,6 +4,7 @@ import Ticker from "@/components/Ticker";
 import Footer from "@/components/Footer";
 import AdSpace from "@/components/AdSpace";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Clock, ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { readFile } from "fs/promises";
@@ -88,11 +89,13 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
                 className="group bg-white rounded-2xl border border-brand-100/60 overflow-hidden hover:shadow-xl hover:shadow-brand-900/5 transition-all"
               >
                 {post.imageUrl && (
-                  <div className="aspect-[16/9] overflow-hidden">
-                    <img 
+                  <div className="aspect-[16/9] overflow-hidden relative">
+                    <Image 
                       src={post.imageUrl} 
                       alt={post.title}
+                      fill
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                   </div>
                 )}
