@@ -9,13 +9,9 @@ export interface FtpAccessOptions {
 }
 
 export function createFtpClient(settings: Record<string, string>): ftp.Client {
-  const client = new ftp.Client();
-  client.ftp.verbose = false;
-
   const timeout = parseInt(settings.ftpTimeout || "30", 10);
-  if (timeout > 0) {
-    client.ftp.timeout = timeout * 1000;
-  }
+  const client = new ftp.Client(timeout > 0 ? timeout * 1000 : undefined);
+  client.ftp.verbose = false;
 
   return client;
 }
