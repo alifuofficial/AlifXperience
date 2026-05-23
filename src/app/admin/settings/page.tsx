@@ -1328,13 +1328,33 @@ export default function SettingsPage() {
                       <AlertTriangle className="w-5 h-5 text-red-500" />
                     )}
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 space-y-1">
                     <p className="text-[10px] font-bold uppercase tracking-wider">
                       {ftpTestFileResult.success ? "Test File Uploaded" : "Test File Failed"}
                     </p>
                     <p className="text-[9px] font-medium leading-relaxed mt-0.5">
                       {ftpTestFileResult.message}
                     </p>
+                    {ftpTestFileResult.success && ftpTestFileResult.remotePath && ftpTestFileResult.filename && (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2 text-[9px]">
+                          <div>
+                            <span className="font-medium">Remote Path:</span>
+                            <span className="font-mono">{ftpTestFileResult.remotePath}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium">Filename:</span>
+                            <span className="font-mono">{ftpTestFileResult.filename}</span>
+                          </div>
+                          {ftpTestFileResult.fileSize !== undefined && (
+                            <div>
+                              <span className="font-medium">File Size:</span>
+                              <span className="font-mono">{ftpTestFileResult.fileSize} bytes</span>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
                     {ftpTestFileResult.url && (
                       <div className="mt-2 flex items-center gap-2 bg-white/60 rounded-lg px-3 py-2 border border-emerald-200/60">
                         <span className="text-[8px] font-bold uppercase tracking-wider text-emerald-600 shrink-0">URL:</span>
