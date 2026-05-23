@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { XMLParser } from "fast-xml-parser";
-import { writeFile, mkdir, readFile } from "fs/promises";
+import { writeFile, mkdir, readFile, unlink } from "fs/promises";
 import path from "path";
+import os from "os";
 import { existsSync } from "fs";
-import { Readable } from "stream";
 import * as ftp from "basic-ftp";
 
 const SETTINGS_PATH = path.join(process.cwd(), "data", "settings.json");
@@ -55,23 +55,28 @@ async function downloadAndSaveImage(imageUrl: string, originalFilename: string):
       
       const client = new ftp.Client();
       client.ftp.verbose = false;
-      
-      await client.access({
-        host: ftpHost,
-        port: ftpPort,
-        user: ftpUser,
-        password: ftpPass,
-        secure: false,
-      });
-      
-      const stream = new Readable();
-      stream.push(buffer);
-      stream.push(null);
-      
-      const remoteFilePath = path.posix.join(ftpRemotePath, unique);
-      await client.uploadFrom(stream, remoteFilePath);
-      client.close();
-      
+
+      const tmpFile = path.join(os.tmpdir(), unique);
+      await writeFile(tmpFile, buffer);
+
+      try {
+        await client.access({
+          host: ftpHost,
+          port: ftpPort,
+          user: ftpUser,
+          password: ftpPass,
+          secure: false,
+        });
+
+        await client.ensureDir(ftpRemotePath);
+
+        const remoteFilePath = path.posix.join(ftpRemotePath, unique);
+        await client.uploadFrom(tmpFile, remoteFilePath);
+      } finally {
+        client.close();
+        await unlink(tmpFile).catch(() => {});
+      }
+
       const baseUrl = ftpPublicUrl.replace(/\/$/, "");
       const returnedUrl = `${baseUrl}/${unique}`;
       

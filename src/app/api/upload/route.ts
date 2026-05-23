@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { writeFile, mkdir, readFile } from "fs/promises";
+import { writeFile, mkdir, readFile, unlink } from "fs/promises";
 import path from "path";
+import os from "os";
 import { existsSync } from "fs";
-import { Readable } from "stream";
 import * as ftp from "basic-ftp";
 import { prisma } from "@/lib/prisma";
 
@@ -66,31 +66,29 @@ export async function POST(req: NextRequest) {
       const client = new ftp.Client();
       client.ftp.verbose = false;
 
+      const tmpFile = path.join(os.tmpdir(), unique);
+
       try {
+        await writeFile(tmpFile, buffer);
+
         await client.access({
           host: ftpHost,
           port: ftpPort,
           user: ftpUser,
           password: ftpPass,
-          secure: false, // Standard FTP, or fallbacks
+          secure: false,
         });
 
-        // Convert Buffer to stream for uploadFrom
-        const stream = new Readable();
-        stream.push(buffer);
-        stream.push(null);
+        await client.ensureDir(ftpRemotePath);
 
-        // remote filename
         const remoteFilePath = path.posix.join(ftpRemotePath, unique);
-        await client.uploadFrom(stream, remoteFilePath);
+        await client.uploadFrom(tmpFile, remoteFilePath);
 
-        // Generate the URL to return. If ftpPublicUrl has no trailing slash, add one
         const baseUrl = ftpPublicUrl.replace(/\/$/, "");
         const returnedUrl = `${baseUrl}/${unique}`;
 
         console.log(`[FTP Upload Success] File uploaded to remote FTP: ${remoteFilePath}. Public URL: ${returnedUrl}`);
 
-        // Register inside Database
         await prisma.media.create({
           data: {
             name: file.name,
@@ -108,6 +106,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: `FTP server connection/upload failed: ${ftpError.message || ftpError}` }, { status: 500 });
       } finally {
         client.close();
+        await unlink(tmpFile).catch(() => {});
       }
     } else {
       // 2. Fallback to Local Storage

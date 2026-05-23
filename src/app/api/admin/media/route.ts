@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { writeFile, mkdir, readFile } from "fs/promises";
+import { writeFile, mkdir, readFile, unlink } from "fs/promises";
 import path from "path";
+import os from "os";
 import { existsSync } from "fs";
-import { Readable } from "stream";
 import * as ftp from "basic-ftp";
 
 const MAX_SIZE = 100 * 1024 * 1024; // 100 MB
@@ -133,7 +133,11 @@ export async function POST(req: NextRequest) {
       const client = new ftp.Client();
       client.ftp.verbose = false;
 
+      const tmpFile = path.join(os.tmpdir(), unique);
+
       try {
+        await writeFile(tmpFile, buffer);
+
         await client.access({
           host: ftpHost,
           port: ftpPort,
@@ -142,14 +146,10 @@ export async function POST(req: NextRequest) {
           secure: false,
         });
 
-        // Convert Buffer to stream
-        const stream = new Readable();
-        stream.push(buffer);
-        stream.push(null);
+        await client.ensureDir(ftpRemotePath);
 
-        // Upload to FTP
         const remoteFilePath = path.posix.join(ftpRemotePath, unique);
-        await client.uploadFrom(stream, remoteFilePath);
+        await client.uploadFrom(tmpFile, remoteFilePath);
 
         const baseUrl = ftpPublicUrl.replace(/\/$/, "");
         returnedUrl = `${baseUrl}/${unique}`;
@@ -159,6 +159,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: `FTP server connection failed: ${ftpErr.message || ftpErr}` }, { status: 500 });
       } finally {
         client.close();
+        await unlink(tmpFile).catch(() => {});
       }
     } else {
       // Local Storage Fallback
