@@ -422,7 +422,7 @@ export default function NewsletterPage() {
         </div>
 
         {/* Right Side: Subscribers Management Grid */}
-        <div className="lg:col-span-5 bg-white rounded-xl border border-brand-100/60 p-6 flex flex-col h-[650px] shadow-sm">
+        <div className="lg:col-span-5 bg-white rounded-xl border border-brand-100/60 p-6 flex flex-col min-h-[400px] sm:min-h-[650px] shadow-sm">
           <div className="border-b border-brand-50 pb-4 mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-sm font-bold uppercase tracking-wider text-brand-900">

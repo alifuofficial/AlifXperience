@@ -160,7 +160,7 @@ function DonutChart({ categories }: { categories: { label: string; value: number
   const circumference = 2 * Math.PI * r;
 
   return (
-    <div className="flex items-center gap-5">
+    <div className="flex flex-col sm:flex-row items-center gap-5">
       <svg width="112" height="112" viewBox="0 0 112 112" className="flex-shrink-0">
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f1f5f9" strokeWidth="12" />
         {categories.map((cat, i) => {
@@ -430,9 +430,9 @@ export default function AdminDashboard() {
       </div>
 
       {/* ─── Charts Row ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white border border-brand-100/60 rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="md:col-span-2 lg:col-span-2 bg-white border border-brand-100/60 rounded-2xl p-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">
             <div>
               <div className="flex items-center gap-2.5">
                 <h2 className="text-sm font-black text-brand-900 uppercase tracking-wider">Page Views</h2>
@@ -466,9 +466,9 @@ export default function AdminDashboard() {
       </div>
 
       {/* ─── Tables + Activity ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white border border-brand-100/60 rounded-2xl overflow-hidden shadow-sm">
-          <div className="flex items-center justify-between px-6 pt-5 pb-0">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="md:col-span-2 lg:col-span-2 bg-white border border-brand-100/60 rounded-2xl overflow-hidden shadow-sm">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 pt-5 pb-0 gap-2">
             <div className="flex gap-6">
               {tabs.map((tab) => (
                 <button
@@ -490,7 +490,7 @@ export default function AdminDashboard() {
           </div>
 
           {activeTab === "posts" ? (
-            <div className="divide-y divide-brand-50">
+            <div className="overflow-x-auto divide-y divide-brand-50">
               {dbData.recentPosts.length === 0 ? (
                 <div className="p-8 text-center text-xs text-brand-400 font-medium">No posts yet.</div>
               ) : dbData.recentPosts.slice(0, 5).map((post, i) => (
@@ -518,7 +518,7 @@ export default function AdminDashboard() {
               ))}
             </div>
           ) : (
-            <div className="divide-y divide-brand-50">
+            <div className="overflow-x-auto divide-y divide-brand-50">
               {dbData.recentUsers.length === 0 ? (
                 <div className="p-8 text-center text-xs text-brand-400 font-medium">No users yet.</div>
               ) : dbData.recentUsers.slice(0, 5).map((user, i) => (

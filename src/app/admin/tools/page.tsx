@@ -430,7 +430,7 @@ export default function AdminToolsPage() {
 
         {/* Server-Side Backups History List */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-[9px] font-bold text-brand-850 uppercase tracking-widest">Server-side backups log (Max 5, auto-rotated)</span>
             <span className="text-[8px] font-bold text-brand-450">{dbInfo?.backups.length || 0} Saved</span>
           </div>

@@ -169,7 +169,7 @@ export default function CategoriesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-accent-600 mb-0.5">Content</p>
           <h1 className="text-2xl font-bold text-brand-900 tracking-tight">Categories</h1>
@@ -220,6 +220,7 @@ export default function CategoriesPage() {
 
       {/* Table */}
       <div className="bg-white rounded-xl border border-brand-100/60 overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-brand-100/60">
@@ -261,7 +262,7 @@ export default function CategoriesPage() {
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-end gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => setEditingId(cat.id)}
                           className="p-1.5 text-brand-300 hover:text-brand-900 hover:bg-brand-100 rounded-lg transition-all"
@@ -288,6 +289,7 @@ export default function CategoriesPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

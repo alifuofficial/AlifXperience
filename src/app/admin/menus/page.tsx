@@ -341,7 +341,7 @@ export default function MenusPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleResetDefaults}
             className="px-4 py-2 text-[9px] font-bold uppercase tracking-widest text-brand-500 bg-white border border-brand-200 rounded-lg hover:bg-brand-50 hover:text-brand-900 transition-all flex items-center gap-2"

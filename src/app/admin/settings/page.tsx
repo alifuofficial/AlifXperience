@@ -362,21 +362,23 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex gap-6">
+    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
       {/* Sidebar nav */}
-      <nav className="w-48 flex-shrink-0 space-y-0.5">
-        <p className="text-[8px] font-bold uppercase tracking-[0.25em] text-brand-300 px-3 mb-3">Settings</p>
-        {filteredTabs.map((t) => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all text-[11px] font-bold uppercase tracking-wider group ${
-              tab === t.id ? "bg-brand-900 text-white" : "text-brand-400 hover:text-brand-900 hover:bg-white"
-            } ${t.id === "danger" && tab !== "danger" ? "text-red-400 hover:text-red-600 hover:bg-red-50" : ""}`}
-          >
-            <t.icon className="w-3.5 h-3.5 flex-shrink-0" />
-            {t.label}
-            {tab === t.id && <ChevronRight className="w-3 h-3 ml-auto" />}
-          </button>
-        ))}
+      <nav className="lg:w-48 flex-shrink-0">
+        <div className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 lg:space-y-0.5">
+          <p className="hidden lg:block text-[8px] font-bold uppercase tracking-[0.25em] text-brand-300 px-3 mb-3">Settings</p>
+          {filteredTabs.map((t) => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className={`flex items-center gap-2 lg:gap-3 px-3 py-2 lg:py-2.5 rounded-lg text-left transition-all text-[10px] lg:text-[11px] font-bold uppercase tracking-wider whitespace-nowrap group ${
+                tab === t.id ? "bg-brand-900 text-white" : "text-brand-400 hover:text-brand-900 hover:bg-white"
+              } ${t.id === "danger" && tab !== "danger" ? "text-red-400 hover:text-red-600 hover:bg-red-50" : ""}`}
+            >
+              <t.icon className="w-3.5 h-3.5 flex-shrink-0" />
+              {t.label}
+              {tab === t.id && <ChevronRight className="w-3 h-3 ml-auto hidden lg:block" />}
+            </button>
+          ))}
+        </div>
       </nav>
 
       {/* Content */}

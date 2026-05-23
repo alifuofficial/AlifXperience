@@ -92,7 +92,7 @@ export default function DownloadManagerClient({ initialMedia }: { initialMedia: 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-end justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-accent-50 border border-accent-100 rounded-full text-[9px] font-bold uppercase tracking-widest text-accent-600">
@@ -165,7 +165,7 @@ export default function DownloadManagerClient({ initialMedia }: { initialMedia: 
       </div>
 
       {/* Control bar */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-brand-100/60 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-brand-100/60 shadow-sm">
         <div className="relative w-full sm:w-80">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-300" />
           <input
@@ -195,6 +195,7 @@ export default function DownloadManagerClient({ initialMedia }: { initialMedia: 
           </div>
         ) : (
           <>
+            <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
               <tr className="border-b border-brand-50 bg-brand-50/40 select-none">
@@ -292,6 +293,7 @@ export default function DownloadManagerClient({ initialMedia }: { initialMedia: 
               })}
             </tbody>
           </table>
+          </div>
           
           {/* Pagination Navigation Bar */}
           {totalPages > 1 && (

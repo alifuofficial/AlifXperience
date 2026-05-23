@@ -238,7 +238,7 @@ export default function PostsManagerClient({ initialPosts, userMap }: PostsManag
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-end justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3">
         <div>
           <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-accent-600 mb-1">Content</p>
           <h1 className="text-3xl font-bold text-brand-900 tracking-tight">Posts</h1>
@@ -313,7 +313,8 @@ export default function PostsManagerClient({ initialPosts, userMap }: PostsManag
       </div>
 
       {/* Posts Table */}
-      <div className="bg-white rounded-xl border border-brand-100/60 overflow-hidden shadow-sm">
+      <div className="overflow-x-auto rounded-xl border border-brand-100/60 shadow-sm">
+        <div className="bg-white rounded-xl overflow-hidden">
         {filteredAndSortedPosts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 space-y-4">
             <div className="w-16 h-16 rounded-2xl bg-brand-50 flex items-center justify-center">
@@ -327,7 +328,7 @@ export default function PostsManagerClient({ initialPosts, userMap }: PostsManag
         ) : (
           <>
             {/* Table Header */}
-            <div className="grid grid-cols-[auto_2.2fr_1.1fr_1.1fr_0.7fr_0.9fr_auto] gap-4 px-6 py-4 border-b border-brand-50 bg-brand-50/40 select-none">
+            <div className="grid grid-cols-[auto_2.2fr_1.1fr_1.1fr_0.7fr_0.9fr_auto] min-w-[700px] gap-4 px-6 py-4 border-b border-brand-50 bg-brand-50/40 select-none">
               {/* Checkbox Header */}
               <button
                 type="button"
@@ -358,7 +359,7 @@ export default function PostsManagerClient({ initialPosts, userMap }: PostsManag
                 return (
                   <div
                     key={post.id}
-                    className={`grid grid-cols-[auto_2.2fr_1.1fr_1.1fr_0.7fr_0.9fr_auto] gap-4 items-center px-6 py-4 transition-all group ${
+                    className={`grid grid-cols-[auto_2.2fr_1.1fr_1.1fr_0.7fr_0.9fr_auto] min-w-[700px] gap-4 items-center px-6 py-4 transition-all group ${
                       isSelected ? "bg-brand-50/70" : "hover:bg-brand-50/20"
                     }`}
                   >
@@ -479,6 +480,7 @@ export default function PostsManagerClient({ initialPosts, userMap }: PostsManag
             </div>
           </>
         )}
+        </div>
       </div>
     </div>
   );

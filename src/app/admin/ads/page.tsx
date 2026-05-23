@@ -726,7 +726,7 @@ export default function AdsDashboard() {
 
       {/* Ad Slots Overview */}
       <div className="bg-white rounded-2xl border border-brand-100/60 overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-brand-50 flex items-center justify-between bg-brand-50/20">
+        <div className="px-6 py-4 border-b border-brand-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-brand-50/20">
           <h2 className="text-[10px] font-black uppercase tracking-widest text-brand-900 flex items-center gap-1.5">
             <BarChart2 className="w-4 h-4 text-accent-600" />
             Ad Slots Overview - All Available Sections
@@ -906,6 +906,7 @@ export default function AdsDashboard() {
           </span>
         </div>
 
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-brand-50 bg-brand-50/10">
@@ -1001,6 +1002,7 @@ export default function AdsDashboard() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Sponsor Partnerships Requests panel */}
@@ -1011,6 +1013,7 @@ export default function AdsDashboard() {
           </h2>
         </div>
 
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-brand-50 bg-brand-50/5">
@@ -1104,11 +1107,12 @@ export default function AdsDashboard() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* CREATE / EDIT SLIDE FORM OVERLAY */}
       {isFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-end p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center lg:justify-end p-4">
           <div className="absolute inset-0 bg-brand-950/40 backdrop-blur-sm" onClick={() => setIsFormOpen(false)} />
           
           <div className="relative bg-white rounded-3xl overflow-hidden shadow-2xl border border-brand-100 max-w-lg w-full z-10 animate-slide-in h-[90vh] flex flex-col">
@@ -1315,8 +1319,8 @@ export default function AdsDashboard() {
             </div>
 
             <form onSubmit={handlePackageSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2 space-y-1">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="col-span-1 sm:col-span-2 space-y-1">
                   <label className="text-[7.5px] font-bold text-brand-450 uppercase tracking-widest block">Package Title</label>
                   <input
                     type="text"
@@ -1352,7 +1356,7 @@ export default function AdsDashboard() {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <label className="text-[7.5px] font-bold text-brand-450 uppercase tracking-widest block">Price Unit</label>
                   <select

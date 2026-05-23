@@ -95,7 +95,7 @@ function DonutChart({ data, total }: { data: { name: string; count: number }[]; 
   let offset = 0;
 
   return (
-    <div className="flex items-center gap-6">
+    <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
       <svg width="140" height="140" viewBox="0 0 140 140" className="flex-shrink-0">
         <circle cx={CX} cy={CY} r={R} fill="none" stroke="#f1f5f9" strokeWidth={stroke} />
         {data.map((d, i) => {
@@ -239,46 +239,48 @@ export default async function AnalyticsPage() {
             <h2 className="text-[10px] font-bold uppercase tracking-wider text-brand-900">Recent Content</h2>
             <span className="text-[9px] font-bold text-brand-300 uppercase tracking-wider">Last 6 posts</span>
           </div>
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-brand-50">
-                <th className="px-5 py-2.5 text-left text-[9px] font-bold uppercase tracking-widest text-brand-400">Title</th>
-                <th className="px-5 py-2.5 text-left text-[9px] font-bold uppercase tracking-widest text-brand-400">Category</th>
-                <th className="px-5 py-2.5 text-center text-[9px] font-bold uppercase tracking-widest text-brand-400">
-                  <MessageSquare className="w-3 h-3 inline" />
-                </th>
-                <th className="px-5 py-2.5 text-left text-[9px] font-bold uppercase tracking-widest text-brand-400">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-brand-50">
-              {data.recentPosts.length === 0 ? (
-                <tr><td colSpan={4} className="py-10 text-center text-xs text-brand-300 font-medium">No posts yet</td></tr>
-              ) : data.recentPosts.map((post, i) => (
-                <tr key={i} className="hover:bg-brand-50/40 transition-colors">
-                  <td className="px-5 py-3">
-                    <p className="text-[11px] font-bold text-brand-900 line-clamp-1 max-w-[220px]">{post.title}</p>
-                    <p className="text-[9px] text-brand-300 font-medium mt-0.5">
-                      {new Date(post.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                    </p>
-                  </td>
-                  <td className="px-5 py-3">
-                    <span className="text-[9px] font-bold text-accent-700 bg-accent-50 px-2 py-0.5 rounded uppercase tracking-wider">
-                      {post.category.name}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 text-center">
-                    <span className="text-[10px] font-bold text-brand-500">{post._count.comments}</span>
-                  </td>
-                  <td className="px-5 py-3">
-                    {post.published
-                      ? <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-wider">Live</span>
-                      : <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full uppercase tracking-wider">Draft</span>
-                    }
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-brand-50">
+                  <th className="px-5 py-2.5 text-left text-[9px] font-bold uppercase tracking-widest text-brand-400">Title</th>
+                  <th className="px-5 py-2.5 text-left text-[9px] font-bold uppercase tracking-widest text-brand-400">Category</th>
+                  <th className="px-5 py-2.5 text-center text-[9px] font-bold uppercase tracking-widest text-brand-400">
+                    <MessageSquare className="w-3 h-3 inline" />
+                  </th>
+                  <th className="px-5 py-2.5 text-left text-[9px] font-bold uppercase tracking-widest text-brand-400">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-brand-50">
+                {data.recentPosts.length === 0 ? (
+                  <tr><td colSpan={4} className="py-10 text-center text-xs text-brand-300 font-medium">No posts yet</td></tr>
+                ) : data.recentPosts.map((post, i) => (
+                  <tr key={i} className="hover:bg-brand-50/40 transition-colors">
+                    <td className="px-5 py-3">
+                      <p className="text-[11px] font-bold text-brand-900 line-clamp-1 max-w-[220px]">{post.title}</p>
+                      <p className="text-[9px] text-brand-300 font-medium mt-0.5">
+                        {new Date(post.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </p>
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className="text-[9px] font-bold text-accent-700 bg-accent-50 px-2 py-0.5 rounded uppercase tracking-wider">
+                        {post.category.name}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-center">
+                      <span className="text-[10px] font-bold text-brand-500">{post._count.comments}</span>
+                    </td>
+                    <td className="px-5 py-3">
+                      {post.published
+                        ? <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-wider">Live</span>
+                        : <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full uppercase tracking-wider">Draft</span>
+                      }
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Right column */}

@@ -121,7 +121,7 @@ function UserModal({ user, onClose, onSave }: {
           </div>
           <div>
             <label className="text-[9px] font-bold uppercase tracking-widest text-brand-400 block mb-2">Role</label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {(["USER", "AUTHOR", "ADMIN"] as Role[]).map((r) => (
                 <button key={r} type="button" onClick={() => setRole(r)}
                   className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all ${
@@ -271,7 +271,7 @@ export default function UsersPage() {
 
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-accent-600 mb-0.5">Management</p>
             <h1 className="text-2xl font-bold text-brand-900 tracking-tight">Users</h1>
@@ -285,7 +285,7 @@ export default function UsersPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { label: "Total Users", value: users.length, icon: Users },
             { label: "Admins", value: admins, icon: Shield },
@@ -305,7 +305,8 @@ export default function UsersPage() {
 
         {/* Table */}
         <div className="bg-white rounded-xl border border-brand-100/60 overflow-hidden">
-          <table className="w-full">
+          <div className="overflow-x-auto">
+            <table className="w-full">
             <thead>
               <tr className="border-b border-brand-100/60">
                 <th className="px-5 py-3 text-left text-[9px] font-bold uppercase tracking-widest text-brand-400">User</th>
@@ -357,7 +358,7 @@ export default function UsersPage() {
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-end gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                         {/* Toggle role */}
                         <button
                           onClick={() => toggleRole(user)}
@@ -399,6 +400,7 @@ export default function UsersPage() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </>

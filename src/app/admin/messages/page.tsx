@@ -428,7 +428,7 @@ export default function AdminMessagesPage() {
             <div className="p-6 space-y-6">
               
               {/* Metadata Details */}
-              <div className="grid grid-cols-2 gap-4 bg-brand-50/50 p-4 rounded-2xl border border-brand-100">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-brand-50/50 p-4 rounded-2xl border border-brand-100">
                 <div className="space-y-1">
                   <p className="text-[8px] font-black uppercase tracking-wider text-brand-400 flex items-center gap-1.5">
                     <Mail className="w-3 h-3 text-accent-500" /> Email Address

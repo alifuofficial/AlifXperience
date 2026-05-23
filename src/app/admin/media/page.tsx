@@ -19,6 +19,7 @@ import {
   Database,
   Server,
   HelpCircle,
+  X,
 } from "lucide-react";
 
 interface MediaItem {
@@ -191,6 +192,79 @@ export default function AdminMediaPage() {
     return <FileText className="w-10 h-10 text-brand-400" />;
   };
 
+  const renderSelectedItemBody = () => (
+    <>
+      <div className="aspect-[4/3] rounded-xl border border-brand-200 bg-white overflow-hidden flex items-center justify-center p-3 shadow-inner">
+        {selectedItem!.mimeType.startsWith("image/") ? (
+          <img
+            src={selectedItem!.url}
+            alt={selectedItem!.name}
+            className="w-full h-full object-contain"
+          />
+        ) : (
+          renderItemIcon(selectedItem!.mimeType, selectedItem!.name)
+        )}
+      </div>
+
+      <div className="space-y-3.5 text-[9.5px] text-brand-650 leading-relaxed font-medium">
+        <div>
+          <strong className="text-brand-900 block font-bold text-[7.5px] uppercase tracking-wider mb-0.5">Physical File Name:</strong>
+          <p className="truncate text-brand-500 font-mono bg-white border border-brand-100 px-2 py-1 rounded" title={selectedItem!.name}>
+            {selectedItem!.name}
+          </p>
+        </div>
+        <div>
+          <strong className="text-brand-900 block font-bold text-[7.5px] uppercase tracking-wider mb-0.5">Asset Reference ID:</strong>
+          <p className="truncate text-brand-500 font-mono bg-white border border-brand-100 px-2 py-1 rounded" title={selectedItem!.id}>
+            {selectedItem!.id}
+          </p>
+        </div>
+        <div>
+          <strong className="text-brand-900 block font-bold text-[7.5px] uppercase tracking-wider mb-0.5">MIME File Format:</strong>
+          <p className="text-brand-500 font-bold uppercase">{selectedItem!.mimeType}</p>
+        </div>
+        <div>
+          <strong className="text-brand-900 block font-bold text-[7.5px] uppercase tracking-wider mb-0.5">File Weight:</strong>
+          <p className="text-brand-500">{formatBytes(selectedItem!.size)}</p>
+        </div>
+        <div>
+          <strong className="text-brand-900 block font-bold text-[7.5px] uppercase tracking-wider mb-0.5">Storage Host:</strong>
+          <p className="text-brand-500 uppercase font-bold text-accent-600">{selectedItem!.storageType}</p>
+        </div>
+        <div>
+          <strong className="text-brand-900 block font-bold text-[7.5px] uppercase tracking-wider mb-0.5">Upload Date:</strong>
+          <p className="text-brand-500">{new Date(selectedItem!.createdAt).toLocaleString()}</p>
+        </div>
+      </div>
+
+      <div className="space-y-2 pt-3 border-t border-brand-100">
+        <button
+          onClick={() => copyLink(selectedItem!.url)}
+          className="w-full flex items-center justify-center gap-2 py-2 text-[9px] font-bold uppercase tracking-wider text-brand-700 bg-white border border-brand-200 hover:bg-brand-50 rounded-lg transition-all cursor-pointer shadow-sm"
+        >
+          <Copy className="w-3.5 h-3.5" />
+          <span>{copiedId === selectedItem!.url ? "Copied!" : "Copy Asset URL"}</span>
+        </button>
+        <a
+          href={selectedItem!.url}
+          target="_blank"
+          rel="noreferrer"
+          className="w-full flex items-center justify-center gap-2 py-2 text-[9px] font-bold uppercase tracking-wider text-brand-700 bg-white border border-brand-200 hover:bg-brand-50 rounded-lg transition-all cursor-pointer shadow-sm"
+        >
+          <ExternalLink className="w-3.5 h-3.5" />
+          <span>Open in New Tab</span>
+        </a>
+        <button
+          onClick={() => handleDelete(selectedItem!.id)}
+          className="w-full flex items-center justify-center gap-2 py-2 text-[9px] font-bold uppercase tracking-wider text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-all cursor-pointer shadow-sm"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+          <span>Delete Asset</span>
+        </button>
+      </div>
+    </>
+  );
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -204,7 +278,7 @@ export default function AdminMediaPage() {
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleSyncFTP}
             disabled={syncing}
@@ -291,7 +365,7 @@ export default function AdminMediaPage() {
       {/* Main Workspace Layout */}
       <div className="flex overflow-hidden min-h-[500px] border border-brand-200/60 bg-white rounded-xl shadow-sm">
         {/* Left Grid Panel */}
-        <div className="flex-1 flex flex-col p-6 overflow-hidden">
+        <div className="flex-1 flex flex-col p-4 lg:p-6 overflow-hidden">
           {/* Top Search & Filter toolbar */}
           <div className="flex flex-col sm:flex-row gap-3 mb-5 shrink-0">
             <div className="flex-1 relative">
@@ -340,7 +414,7 @@ export default function AdminMediaPage() {
                 <Loader2 className="w-8 h-8 text-brand-300 animate-spin" />
               </div>
             ) : mediaItems.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                 {mediaItems.map((item) => {
                   const isSelected = selectedItem?.id === item.id;
                   const isImage = item.mimeType.startsWith("image/");
@@ -419,78 +493,7 @@ export default function AdminMediaPage() {
                 <Sliders className="w-3.5 h-3.5 text-accent-500" />
                 <span>Asset Inspector</span>
               </h3>
-
-              {/* Graphic Preview */}
-              <div className="aspect-[4/3] rounded-xl border border-brand-200 bg-white overflow-hidden flex items-center justify-center p-3 shadow-inner">
-                {selectedItem.mimeType.startsWith("image/") ? (
-                  <img
-                    src={selectedItem.url}
-                    alt={selectedItem.name}
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  renderItemIcon(selectedItem.mimeType, selectedItem.name)
-                )}
-              </div>
-
-              {/* Specs Listing */}
-              <div className="space-y-3.5 text-[9.5px] text-brand-650 leading-relaxed font-medium">
-                <div>
-                  <strong className="text-brand-900 block font-bold text-[7.5px] uppercase tracking-wider mb-0.5">Physical File Name:</strong>
-                  <p className="truncate text-brand-500 font-mono bg-white border border-brand-100 px-2 py-1 rounded" title={selectedItem.name}>
-                    {selectedItem.name}
-                  </p>
-                </div>
-                <div>
-                  <strong className="text-brand-900 block font-bold text-[7.5px] uppercase tracking-wider mb-0.5">Asset Reference ID:</strong>
-                  <p className="truncate text-brand-500 font-mono bg-white border border-brand-100 px-2 py-1 rounded" title={selectedItem.id}>
-                    {selectedItem.id}
-                  </p>
-                </div>
-                <div>
-                  <strong className="text-brand-900 block font-bold text-[7.5px] uppercase tracking-wider mb-0.5">MIME File Format:</strong>
-                  <p className="text-brand-500 font-bold uppercase">{selectedItem.mimeType}</p>
-                </div>
-                <div>
-                  <strong className="text-brand-900 block font-bold text-[7.5px] uppercase tracking-wider mb-0.5">File Weight:</strong>
-                  <p className="text-brand-500">{formatBytes(selectedItem.size)}</p>
-                </div>
-                <div>
-                  <strong className="text-brand-900 block font-bold text-[7.5px] uppercase tracking-wider mb-0.5">Storage Host:</strong>
-                  <p className="text-brand-500 uppercase font-bold text-accent-600">{selectedItem.storageType}</p>
-                </div>
-                <div>
-                  <strong className="text-brand-900 block font-bold text-[7.5px] uppercase tracking-wider mb-0.5">Upload Date:</strong>
-                  <p className="text-brand-500">{new Date(selectedItem.createdAt).toLocaleString()}</p>
-                </div>
-              </div>
-
-              {/* Utility Commands */}
-              <div className="space-y-2 pt-3 border-t border-brand-100">
-                <button
-                  onClick={() => copyLink(selectedItem.url)}
-                  className="w-full flex items-center justify-center gap-2 py-2 text-[9px] font-bold uppercase tracking-wider text-brand-700 bg-white border border-brand-200 hover:bg-brand-50 rounded-lg transition-all cursor-pointer shadow-sm"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>{copiedId === selectedItem.url ? "Copied!" : "Copy Asset URL"}</span>
-                </button>
-                <a
-                  href={selectedItem.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full flex items-center justify-center gap-2 py-2 text-[9px] font-bold uppercase tracking-wider text-brand-700 bg-white border border-brand-200 hover:bg-brand-50 rounded-lg transition-all cursor-pointer shadow-sm"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Open in New Tab</span>
-                </a>
-                <button
-                  onClick={() => handleDelete(selectedItem.id)}
-                  className="w-full flex items-center justify-center gap-2 py-2 text-[9px] font-bold uppercase tracking-wider text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-all cursor-pointer shadow-sm"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Delete Asset</span>
-                </button>
-              </div>
+              {renderSelectedItemBody()}
             </div>
           ) : (
             <div className="h-full flex items-center justify-center text-center text-brand-300 text-[10px] font-medium leading-relaxed">
@@ -499,6 +502,33 @@ export default function AdminMediaPage() {
           )}
         </div>
       </div>
+
+      {/* Mobile Detail Sheet */}
+      {selectedItem && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setSelectedItem(null)}
+          />
+          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto shadow-2xl animate-slide-up">
+            <div className="sticky top-0 z-10 bg-white flex items-center justify-between px-6 pt-5 pb-3 border-b border-brand-100">
+              <h3 className="text-[10px] font-bold text-brand-900 uppercase tracking-widest flex items-center gap-1.5">
+                <Sliders className="w-3.5 h-3.5 text-accent-500" />
+                <span>Asset Inspector</span>
+              </h3>
+              <button
+                onClick={() => setSelectedItem(null)}
+                className="p-1.5 rounded-lg hover:bg-brand-100 text-brand-400 cursor-pointer transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-6 pt-4 space-y-5">
+              {renderSelectedItemBody()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
