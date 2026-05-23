@@ -22,6 +22,12 @@ export default function DownloadManagerClient({ initialMedia }: { initialMedia: 
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [savingSettings, setSavingSettings] = useState(false);
   const [savedSettings, setSavedSettings] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset page when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   useEffect(() => {
     fetch("/api/settings")
@@ -61,6 +67,14 @@ export default function DownloadManagerClient({ initialMedia }: { initialMedia: 
   const filteredMedia = initialMedia.filter((m) =>
     m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     m.mimeType.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Pagination slicing parameters
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filteredMedia.length / itemsPerPage);
+  const paginatedMedia = filteredMedia.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   const handleCopy = (id: string) => {
@@ -180,8 +194,9 @@ export default function DownloadManagerClient({ initialMedia }: { initialMedia: 
             </div>
           </div>
         ) : (
-          <table className="w-full text-left">
-            <thead>
+          <>
+            <table className="w-full text-left">
+              <thead>
               <tr className="border-b border-brand-50 bg-brand-50/40 select-none">
                 <th className="px-6 py-4 text-[8px] font-bold uppercase tracking-widest text-brand-300">File Asset</th>
                 <th className="px-6 py-4 text-[8px] font-bold uppercase tracking-widest text-brand-300">Size & Mime</th>
@@ -192,7 +207,7 @@ export default function DownloadManagerClient({ initialMedia }: { initialMedia: 
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-50">
-              {filteredMedia.map((m) => {
+              {paginatedMedia.map((m) => {
                 const isCopied = copiedId === m.id;
                 const shortcode = `[download id="${m.id}"]`;
 
@@ -277,6 +292,56 @@ export default function DownloadManagerClient({ initialMedia }: { initialMedia: 
               })}
             </tbody>
           </table>
+          
+          {/* Pagination Navigation Bar */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-brand-50 bg-brand-50/20 select-none">
+              <div className="text-[10px] font-bold text-brand-400 uppercase tracking-wider">
+                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredMedia.length)} of {filteredMedia.length} assets
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-brand-200 bg-white text-brand-700 hover:bg-brand-50 hover:text-brand-900 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Prev
+                </button>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
+                  if (totalPages > 5 && Math.abs(p - currentPage) > 2 && p !== 1 && p !== totalPages) {
+                    if (p === 2 || p === totalPages - 1) {
+                      return <span key={p} className="text-brand-300 text-xs px-1 select-none">...</span>;
+                    }
+                    return null;
+                  }
+                  
+                  return (
+                    <button
+                      key={p}
+                      onClick={() => setCurrentPage(p)}
+                      className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                        currentPage === p
+                          ? "bg-brand-900 text-white shadow-sm"
+                          : "border border-brand-100 bg-white text-brand-600 hover:bg-brand-50"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-brand-200 bg-white text-brand-700 hover:bg-brand-50 hover:text-brand-900 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+          </>
         )}
       </div>
     </div>
