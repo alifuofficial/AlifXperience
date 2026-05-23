@@ -1,17 +1,26 @@
 const { PrismaClient } = require("../src/generated/client/index.js");
-const { PrismaBetterSqlite3 } = require("@prisma/adapter-better-sqlite3");
 const bcrypt = require("bcryptjs");
-const path = require("path");
 
-// Resolve the SQLite database path dynamically, matching the main app logic
 const dbUrl = process.env.DATABASE_URL || "file:./dev.db";
-const rawPath = dbUrl.startsWith("file:") ? dbUrl.substring(5) : dbUrl;
-const dbPath = path.isAbsolute(rawPath) ? rawPath : path.join(process.cwd(), rawPath);
+let prisma;
 
-console.log(`[Seed Script] Initializing SQLite database at path: ${dbPath}`);
+if (dbUrl.startsWith("postgresql://") || dbUrl.startsWith("postgres://")) {
+  const { PrismaPg } = require("@prisma/adapter-pg");
+  const { Pool } = require("pg");
+  console.log("[Seed Script] Initializing PostgreSQL adapter for Supabase...");
+  const pool = new Pool({ connectionString: dbUrl });
+  const adapter = new PrismaPg(pool);
+  prisma = new PrismaClient({ adapter });
+} else {
+  const { PrismaBetterSqlite3 } = require("@prisma/adapter-better-sqlite3");
+  const path = require("path");
+  const rawPath = dbUrl.startsWith("file:") ? dbUrl.substring(5) : dbUrl;
+  const dbPath = path.isAbsolute(rawPath) ? rawPath : path.join(process.cwd(), rawPath);
 
-const adapter = new PrismaBetterSqlite3({ url: dbPath });
-const prisma = new PrismaClient({ adapter });
+  console.log(`[Seed Script] Initializing SQLite database at path: ${dbPath}`);
+  const adapter = new PrismaBetterSqlite3({ url: dbPath });
+  prisma = new PrismaClient({ adapter });
+}
 
 async function main() {
   // Run a raw query to clean up any legacy roles from previous application deployments
